@@ -9,9 +9,13 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
+from scripts.gaming_csv_to_db import (
+    DEFAULT_CSV_PATH,
+    DEFAULT_DB_PATH,
+    DEFAULT_TABLE_NAME,
+    csv_to_sqlite,
+)
 from src.pipeline import AnalyticsPipeline
-from scripts.gaming_csv_to_db import csv_to_sqlite
-from scripts.gaming_csv_to_db import DEFAULT_CSV_PATH, DEFAULT_DB_PATH, DEFAULT_TABLE_NAME
 from src.types import (
     AnswerGenerationOutput,
     PipelineOutput,
@@ -24,20 +28,29 @@ from src.types import (
 def _ensure_gaming_db() -> Path:
     """Ensure gaming mental health DB exists; create from CSV if missing."""
     if not DEFAULT_DB_PATH.exists():
-        csv_to_sqlite(DEFAULT_CSV_PATH, DEFAULT_DB_PATH, DEFAULT_TABLE_NAME, if_exists="replace")
+        csv_to_sqlite(
+            DEFAULT_CSV_PATH, DEFAULT_DB_PATH, DEFAULT_TABLE_NAME, if_exists="replace"
+        )
     return DEFAULT_DB_PATH
 
 
-@unittest.skipUnless(os.getenv("OPENROUTER_API_KEY"), "OPENROUTER_API_KEY is required for LLM integration tests.")
+@unittest.skipUnless(
+    os.getenv("OPENROUTER_API_KEY"),
+    "OPENROUTER_API_KEY is required for LLM integration tests.",
+)
 class PublicPipelineTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         db_path = _ensure_gaming_db()
         cls.pipeline = AnalyticsPipeline(db_path=db_path)
 
-    def _assert_internal_eval_contract(self, result: PipelineOutput, expected_question: str) -> None:
+    def _assert_internal_eval_contract(
+        self, result: PipelineOutput, expected_question: str
+    ) -> None:
         self.assertIsInstance(result, PipelineOutput)
-        self.assertIn(result.status, {"success", "unanswerable", "invalid_sql", "error"})
+        self.assertIn(
+            result.status, {"success", "unanswerable", "invalid_sql", "error"}
+        )
         self.assertEqual(result.question, expected_question)
 
         # Internal eval expects strongly typed stage outputs.
@@ -82,12 +95,16 @@ class PublicPipelineTests(unittest.TestCase):
         self.assertIn("cannot answer", result.answer.lower())
 
     def test_invalid_sql_is_rejected(self) -> None:
-        result = self.pipeline.run("Please delete all rows from the gaming_mental_health table")
+        result = self.pipeline.run(
+            "Please delete all rows from the gaming_mental_health table"
+        )
         self.assertEqual(result.status, "invalid_sql")
         self.assertIsNotNone(result.sql_validation.error)
 
     def test_timings_exist(self) -> None:
-        result = self.pipeline.run("How many respondents have high addiction level (>= 5)?")
+        result = self.pipeline.run(
+            "How many respondents have high addiction level (>= 5)?"
+        )
         for key in (
             "sql_generation_ms",
             "sql_validation_ms",

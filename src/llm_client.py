@@ -5,7 +5,7 @@ import os
 import time
 from typing import Any
 
-from src.types import SQLGenerationOutput, AnswerGenerationOutput
+from src.types import AnswerGenerationOutput, SQLGenerationOutput
 
 DEFAULT_MODEL = "openai/gpt-5-nano"
 
@@ -22,9 +22,16 @@ class OpenRouterLLMClient:
             raise RuntimeError("Missing dependency: install 'openrouter'.") from exc
         self.model = model or os.getenv("OPENROUTER_MODEL", DEFAULT_MODEL)
         self._client = OpenRouter(api_key=api_key)
-        self._stats = {"llm_calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+        self._stats = {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
 
-    def _chat(self, messages: list[dict[str, str]], temperature: float, max_tokens: int) -> str:
+    def _chat(
+        self, messages: list[dict[str, str]], temperature: float, max_tokens: int
+    ) -> str:
         res = self._client.chat.send(
             messages=messages,
             model=self.model,
@@ -76,7 +83,10 @@ class OpenRouterLLMClient:
 
         try:
             text = self._chat(
-                messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
                 temperature=0.0,
                 max_tokens=240,
             )
@@ -95,19 +105,33 @@ class OpenRouterLLMClient:
             error=error,
         )
 
-    def generate_answer(self, question: str, sql: str | None, rows: list[dict[str, Any]]) -> AnswerGenerationOutput:
+    def generate_answer(
+        self, question: str, sql: str | None, rows: list[dict[str, Any]]
+    ) -> AnswerGenerationOutput:
         if not sql:
             return AnswerGenerationOutput(
                 answer="I cannot answer this with the available table and schema. Please rephrase using known survey fields.",
                 timing_ms=0.0,
-                llm_stats={"llm_calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "model": self.model},
+                llm_stats={
+                    "llm_calls": 0,
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0,
+                    "model": self.model,
+                },
                 error=None,
             )
         if not rows:
             return AnswerGenerationOutput(
                 answer="Query executed, but no rows were returned.",
                 timing_ms=0.0,
-                llm_stats={"llm_calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "model": self.model},
+                llm_stats={
+                    "llm_calls": 0,
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0,
+                    "model": self.model,
+                },
                 error=None,
             )
 
@@ -127,7 +151,10 @@ class OpenRouterLLMClient:
 
         try:
             answer = self._chat(
-                messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
                 temperature=0.2,
                 max_tokens=220,
             )
@@ -148,7 +175,12 @@ class OpenRouterLLMClient:
 
     def pop_stats(self) -> dict[str, Any]:
         out = dict(self._stats or {})
-        self._stats = {"llm_calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+        self._stats = {
+            "llm_calls": 0,
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
         return out
 
 

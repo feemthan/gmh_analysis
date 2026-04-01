@@ -6,11 +6,10 @@ from pathlib import Path
 
 from src.llm_client import OpenRouterLLMClient, build_default_llm_client
 from src.types import (
-    SQLValidationOutput,
-    SQLExecutionOutput,
     PipelineOutput,
+    SQLExecutionOutput,
+    SQLValidationOutput,
 )
-
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_DB_PATH = BASE_DIR / "data" / "gaming_mental_health.sqlite"
@@ -83,7 +82,11 @@ class SQLiteExecutor:
 
 
 class AnalyticsPipeline:
-    def __init__(self, db_path: str | Path = DEFAULT_DB_PATH, llm_client: OpenRouterLLMClient | None = None) -> None:
+    def __init__(
+        self,
+        db_path: str | Path = DEFAULT_DB_PATH,
+        llm_client: OpenRouterLLMClient | None = None,
+    ) -> None:
         self.db_path = Path(db_path)
         self.llm = llm_client or build_default_llm_client()
         self.executor = SQLiteExecutor(self.db_path)
@@ -129,10 +132,14 @@ class AnalyticsPipeline:
 
         # Build total LLM stats
         total_llm_stats = {
-            "llm_calls": sql_gen_output.llm_stats.get("llm_calls", 0) + answer_output.llm_stats.get("llm_calls", 0),
-            "prompt_tokens": sql_gen_output.llm_stats.get("prompt_tokens", 0) + answer_output.llm_stats.get("prompt_tokens", 0),
-            "completion_tokens": sql_gen_output.llm_stats.get("completion_tokens", 0) + answer_output.llm_stats.get("completion_tokens", 0),
-            "total_tokens": sql_gen_output.llm_stats.get("total_tokens", 0) + answer_output.llm_stats.get("total_tokens", 0),
+            "llm_calls": sql_gen_output.llm_stats.get("llm_calls", 0)
+            + answer_output.llm_stats.get("llm_calls", 0),
+            "prompt_tokens": sql_gen_output.llm_stats.get("prompt_tokens", 0)
+            + answer_output.llm_stats.get("prompt_tokens", 0),
+            "completion_tokens": sql_gen_output.llm_stats.get("completion_tokens", 0)
+            + answer_output.llm_stats.get("completion_tokens", 0),
+            "total_tokens": sql_gen_output.llm_stats.get("total_tokens", 0)
+            + answer_output.llm_stats.get("total_tokens", 0),
             "model": sql_gen_output.llm_stats.get("model", "unknown"),
         }
 

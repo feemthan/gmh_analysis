@@ -1,9 +1,11 @@
 # Senior Full Stack Engineer (GenAI-Labs) Take-Home Assignment
 
 ## Timebox
+
 Plan for **4-6 hours**.
 
 ## Goal
+
 Optimize a baseline LLM-driven analytics pipeline for a single-table SQL dataset while preserving output quality.
 
 Key metrics include **end-to-end response time** from prompt ingest to final answer, **resources consumed** (tokens), and **quality of the output**.
@@ -21,6 +23,7 @@ Key metrics include **end-to-end response time** from prompt ingest to final ans
 The baseline pipeline will run, but key functionality—particularly around validation, observability, and efficiency optimizations—remains incomplete. See `Assignment Tasks` below and `CHECKLIST.md` for specific implementation requirements.
 
 ## What You Get
+
 - Baseline Python pipeline with stages:
   - SQL generation (real LLM call)
   - SQL validation
@@ -46,6 +49,7 @@ The baseline pipeline will run, but key functionality—particularly around vali
 6. **Consider efficiency.** Optimize end-to-end latency, token usage, and efficient LLM requests while preserving quality.
 
 ## Hard Requirements
+
 1. Do not modify existing public tests in `tests/test_public.py`.
 2. Public tests must pass.
 3. Keep the project runnable locally with standard Python.
@@ -97,6 +101,7 @@ set OPENROUTER_API_KEY=<your_key>
 On Linux/macOS: `export OPENROUTER_API_KEY=<your_key>`
 
 ## Benchmark
+
 Run:
 
 ```bash
@@ -105,9 +110,10 @@ python3 scripts/benchmark.py --runs 3
 
 This prints baseline-style latency stats (`avg`, `p50`, `p95`) and success rate.
 
-**Reference metrics** (baseline on reference hardware): avg ~2900ms, p50 ~2500ms, p95 ~4700ms, ~600 tokens/request. 
+**Reference metrics** (baseline on reference hardware): avg ~2900ms, p50 ~2500ms, p95 ~4700ms, ~600 tokens/request.
 
 ## Deliverables
+
 1. Updated source code
 2. Added tests (if any)
 3. Completed `CHECKLIST.md` with all sections addressed
@@ -137,6 +143,7 @@ The current pipeline handles single, isolated questions. In real-world scenarios
 - If implemented, document your approach in `CHECKLIST.md` under a "Follow-Up Questions" section.
 
 ## General Notes
+
 - The baseline intentionally leaves room for substantial optimization.
 - Hidden evaluation includes paraphrased prompts and edge/failure cases.
 - Public tests are integration tests and require a valid `OPENROUTER_API_KEY`.

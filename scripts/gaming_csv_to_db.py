@@ -118,7 +118,9 @@ def csv_to_sqlite(
         for chunk in pd.read_csv(csv_path, chunksize=chunksize, low_memory=False):
             if first:
                 create_table_from_df(conn, table_name, chunk, if_exists=if_exists)
-                print(f"Created table '{table_name}' with columns: {list(chunk.columns)}")
+                print(
+                    f"Created table '{table_name}' with columns: {list(chunk.columns)}"
+                )
                 first = False
 
             insert_chunk(conn, table_name, chunk)
@@ -155,12 +157,12 @@ def verify_database(db_path: Path, table_name: str):
 
     # Gender distribution
     try:
-        cursor.execute(f'''
+        cursor.execute(f"""
             SELECT gender, COUNT(*) as count
             FROM "{table_name}"
             GROUP BY gender
             ORDER BY count DESC
-        ''')
+        """)
         distribution = cursor.fetchall()
         print(f"\nGender Distribution:")
         for gender, group_count in distribution:
@@ -171,7 +173,7 @@ def verify_database(db_path: Path, table_name: str):
 
     # Addiction level distribution (bucketed: low 0-2, medium 2-5, high 5+)
     try:
-        cursor.execute(f'''
+        cursor.execute(f"""
             SELECT
                 CASE
                     WHEN addiction_level < 2 THEN 'Low (0-2)'
@@ -182,7 +184,7 @@ def verify_database(db_path: Path, table_name: str):
             FROM "{table_name}"
             GROUP BY bucket
             ORDER BY MIN(addiction_level)
-        ''')
+        """)
         distribution = cursor.fetchall()
         print(f"\nAddiction Level Distribution:")
         for bucket, group_count in distribution:
@@ -265,6 +267,7 @@ def main():
     except Exception as e:
         print(f"Unexpected error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 
