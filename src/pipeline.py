@@ -95,9 +95,9 @@ class AnalyticsPipeline:
         start = time.perf_counter()
 
         # Build context to do a pre hit to the LLM
-        context = self.llm.build_context(question)
+        context, (context_cost, context_input_tokens, context_output_tokens) = self.llm.build_context(question)
         # Stage 1: SQL Generation
-        sql_gen_output = self.llm.generate_sql(question, context)
+        sql_gen_output, (gen_cost, gen_input_tokens, gen_output_tokens) = self.llm.generate_sql(question, context)
         sql = sql_gen_output.sql
 
         # Stage 2: SQL Validation
@@ -110,7 +110,13 @@ class AnalyticsPipeline:
         rows = execution_output.rows
 
         # Stage 4: Answer Generation
-        answer_output = self.llm.generate_answer(question, sql, rows)
+        answer_output, (answer_cost, answer_input_tokens, anser_output_tokens) = self.llm.generate_answer(question, sql, rows)
+
+        total_cost = context_cost + gen_cost + answer_cost
+        total_input_tokens = context_input_tokens + gen_input_tokens + answer_input_tokens
+        total_output_tokens = context_output_tokens + gen_output_tokens + anser_output_tokens
+
+        print(total_cost, total_input_tokens, total_output_tokens)
 
         # Determine status
         status = "success"

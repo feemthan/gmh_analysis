@@ -18,6 +18,10 @@ DEFAULT_MODEL = "qwen/qwen3.6-plus:free"
 BASE_DIR = Path(__file__).resolve().parents[1]
 TABLE_META_DATA_CONTEXT = BASE_DIR / "src"/ "utils" / "table_metadata_context.json"
 
+COST_CALCULATOR = {
+    "qwen/qwen3.6-plus:free": [0, 0],  # costs [input, ouptput tokens]
+}
+
 class OpenRouterLLMClient:
     """LLM client using the OpenRouter SDK for chat completions."""
 
@@ -50,6 +54,14 @@ class OpenRouterLLMClient:
 
         # TODO: Implement token counting here
         # Required for efficiency evaluation - see README.md for details.
+        print(res.usage)
+        input_price =  COST_CALCULATOR[DEFAULT_MODEL][0]
+        output_price = COST_CALCULATOR[DEFAULT_MODEL][1]
+
+        input_tokens = res.usage.prompt_tokens
+        output_tokens = res.usage.completion_tokens
+
+        cost = (input_tokens * input_price) + (output_tokens * output_price)
 
         choices = getattr(res, "choices", None) or []
         if not choices:
@@ -57,7 +69,7 @@ class OpenRouterLLMClient:
         content = getattr(getattr(choices[0], "message", None), "content", None)
         if not isinstance(content, str):
             raise RuntimeError("OpenRouter response content is not text.")
-        return content.strip()
+        return content.strip(), (cost, input_tokens, output_tokens)
 
     @staticmethod
     def _extract_sql(text: str) -> str | None:
@@ -106,7 +118,7 @@ class OpenRouterLLMClient:
             user_prompt = f"Question: {question}\n\nTable Metadata:\n{json.dumps(columns_to_llm, ensure_ascii=True)}"
             columns = []
             try:
-                columns = self._chat(
+                columns, (cost, input_tokens, output_tokens) = self._chat(
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt},
@@ -122,7 +134,7 @@ class OpenRouterLLMClient:
                 for key in ast.literal_eval(columns)
                 if key in table_meta_data_context
             }
-            return context
+            return context, (cost, input_tokens, output_tokens)
 
     def generate_sql(self, question: str, context: dict) -> SQLGenerationOutput:
         system_prompt = (
@@ -140,7 +152,7 @@ class OpenRouterLLMClient:
         sql = None
 
         try:
-            text = self._chat(
+            text, (cost, input_tokens, output_tokens) = self._chat(
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
@@ -161,7 +173,7 @@ class OpenRouterLLMClient:
             timing_ms=timing_ms,
             llm_stats=llm_stats,
             error=error,
-        )
+        ), (cost, input_tokens, output_tokens)
 
     def generate_answer(
         self, question: str, sql: str | None, rows: list[dict[str, Any]]
@@ -208,7 +220,7 @@ class OpenRouterLLMClient:
         answer = ""
 
         try:
-            answer = self._chat(
+            answer, (cost, input_tokens, output_tokens) = self._chat(
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
@@ -229,7 +241,7 @@ class OpenRouterLLMClient:
             timing_ms=timing_ms,
             llm_stats=llm_stats,
             error=error,
-        )
+        ), (cost, input_tokens, output_tokens)
 
     def pop_stats(self) -> dict[str, Any]:
         out = dict(self._stats or {})
