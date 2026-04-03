@@ -9,14 +9,14 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from scripts.gaming_csv_to_db import (
+from scripts.gaming_csv_to_db import (  # noqa: E402
     DEFAULT_CSV_PATH,
     DEFAULT_DB_PATH,
     DEFAULT_TABLE_NAME,
     csv_to_sqlite,
 )
-from src.pipeline import AnalyticsPipeline
-from src.types import (
+from src.pipeline import AnalyticsPipeline  # noqa: E402
+from src.types import (  # noqa: E402
     AnswerGenerationOutput,
     PipelineOutput,
     SQLExecutionOutput,
