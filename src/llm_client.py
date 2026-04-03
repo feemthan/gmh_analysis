@@ -129,6 +129,9 @@ class OpenRouterLLMClient:
             "You are a SQL assistant. "
             "Generate SQLite SELECT queries from natural language questions. "
             "Return your response in a format that can be parsed to extract the SQL."
+            "Use only the provided context about column descriptions and synonyms to inform your SQL generation. "
+            "Do not use any columns that are not in the provided context."
+            "Do not add any new line or quotes around the SQL. Return only the SQL query as plain text."
         )
         user_prompt = f"Table name: gaming_mental_health\n\nContext: {context}\n\nQuestion: {question}\n\nGenerate a SQL query to answer this question."
 
