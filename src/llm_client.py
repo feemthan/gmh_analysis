@@ -130,7 +130,7 @@ class OpenRouterLLMClient:
             "Generate SQLite SELECT queries from natural language questions. "
             "Return your response in a format that can be parsed to extract the SQL."
         )
-        user_prompt = f"Context: {context}\n\nQuestion: {question}\n\nGenerate a SQL query to answer this question."
+        user_prompt = f"Table name: gaming_mental_health\n\nContext: {context}\n\nQuestion: {question}\n\nGenerate a SQL query to answer this question."
 
         start = time.perf_counter()
         error = None

@@ -94,8 +94,10 @@ class AnalyticsPipeline:
     def run(self, question: str, request_id: str | None = None) -> PipelineOutput:
         start = time.perf_counter()
 
+        # Build context to do a pre hit to the LLM
+        context = self.llm.build_context(question)
         # Stage 1: SQL Generation
-        sql_gen_output = self.llm.generate_sql(question, {})
+        sql_gen_output = self.llm.generate_sql(question, context)
         sql = sql_gen_output.sql
 
         # Stage 2: SQL Validation
