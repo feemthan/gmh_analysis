@@ -4,6 +4,9 @@ import json
 import os
 import time
 from typing import Any
+from pathlib import Path
+# convert string to list for context building
+import ast
 
 from dotenv import load_dotenv
 
@@ -12,7 +15,8 @@ from src.types import AnswerGenerationOutput, SQLGenerationOutput
 load_dotenv()
 
 DEFAULT_MODEL = "qwen/qwen3.6-plus:free"
-
+BASE_DIR = Path(__file__).resolve().parents[1]
+TABLE_META_DATA_CONTEXT = BASE_DIR / "src"/ "utils" / "table_metadata_context.json"
 
 class OpenRouterLLMClient:
     """LLM client using the OpenRouter SDK for chat completions."""
@@ -72,6 +76,53 @@ class OpenRouterLLMClient:
         if idx >= 0:
             return text[idx:].strip()
         return None
+
+    def build_context(self, question: str) -> dict[str, Any]:
+
+            table_meta_data_context = {}
+            if TABLE_META_DATA_CONTEXT.exists():
+                table_meta_data_context = json.loads(
+                    TABLE_META_DATA_CONTEXT.read_text(encoding="utf-8")
+                )
+
+            columns_to_llm = [
+                {"column": key, "description": value.get("desc", ""), "synonyms": value.get("synonyms", [])}
+                for key, value in table_meta_data_context.items()
+            ]
+
+            system_prompt = """
+                Your task is to identify the minimum set of relevant database columns needed to answer a user’s question.
+
+                Rules:
+                - Use only the columns provided in the schema
+                - Match based on column descriptions and synonyms
+                - Return ONLY a Python list of column names
+                - Do NOT include explanations, reasoning, or extra text
+                - Do NOT return anything other than the list
+                - Ensure the output is valid Python list syntax
+
+            """
+
+            user_prompt = f"Question: {question}\n\nTable Metadata:\n{json.dumps(columns_to_llm, ensure_ascii=True)}"
+            columns = []
+            try:
+                columns = self._chat(
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    temperature=0.0,
+                    max_tokens=300,
+                )
+            except Exception as exc:
+                print(f"Error building LLM context: {exc}")
+
+            context = {
+                key: table_meta_data_context[key]
+                for key in ast.literal_eval(columns)
+                if key in table_meta_data_context
+            }
+            return context
 
     def generate_sql(self, question: str, context: dict) -> SQLGenerationOutput:
         system_prompt = (

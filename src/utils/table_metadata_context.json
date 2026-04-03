@@ -1,0 +1,312 @@
+{
+  "age": {
+    "datatype": "integer",
+    "range": [13, 59],
+    "mean": 35.986,
+    "median": 36.0,
+    "desc": "Age of the individual",
+    "synonyms": ["age", "years"]
+  },
+  "gender": {
+    "datatype": "string",
+    "uniques": ["Female", "Male", "Other"],
+    "desc": "Gender of the individual",
+    "synonyms": ["gender", "sex"]
+  },
+  "income": {
+    "datatype": "integer",
+    "range": [5000, 149999],
+    "mean": 77497.676,
+    "median": 78017.5,
+    "desc": "Monthly income of the individual",
+    "synonyms": ["income", "salary", "earnings"]
+  },
+  "daily_gaming_hours": {
+    "datatype": "float",
+    "range": [0.0, 30.42],
+    "mean": 3.999,
+    "median": 3.4,
+    "desc": "Average hours spent gaming per day",
+    "synonyms": ["gaming time", "play time"]
+  },
+  "weekly_sessions": {
+    "datatype": "integer",
+    "range": [1, 39],
+    "mean": 19.998,
+    "median": 20.0,
+    "desc": "Number of gaming sessions per week",
+    "synonyms": ["sessions", "weekly gaming"]
+  },
+  "years_gaming": {
+    "datatype": "integer",
+    "range": [0, 24],
+    "mean": 12.003,
+    "median": 12.0,
+    "desc": "Total years of gaming experience",
+    "synonyms": ["gaming experience", "years playing"]
+  },
+  "sleep_hours": {
+    "datatype": "float",
+    "range": [-0.17, 14.02],
+    "mean": 7.001,
+    "median": 7.01,
+    "desc": "Average hours of sleep per day",
+    "synonyms": ["sleep time", "sleep duration"]
+  },
+  "caffeine_intake": {
+    "datatype": "float",
+    "range": [0.0, 26.9],
+    "mean": 1.998,
+    "median": 1.37,
+    "desc": "Daily caffeine consumption",
+    "synonyms": ["caffeine", "coffee intake"]
+  },
+  "exercise_hours": {
+    "datatype": "float",
+    "range": [0.0, 26.48],
+    "mean": 1.999,
+    "median": 1.37,
+    "desc": "Hours spent exercising",
+    "synonyms": ["exercise", "workout"]
+  },
+  "stress_level": {
+    "datatype": "integer",
+    "range": [1, 10],
+    "mean": 5.498,
+    "median": 6.0,
+    "desc": "Stress level score",
+    "synonyms": ["stress", "stress score"]
+  },
+  "anxiety_score": {
+    "datatype": "float",
+    "range": [0.0, 10.0],
+    "mean": 4.999,
+    "median": 5.01,
+    "desc": "Anxiety level score",
+    "synonyms": ["anxiety"]
+  },
+  "depression_score": {
+    "datatype": "float",
+    "range": [0.0, 10.0],
+    "mean": 5.003,
+    "median": 5.01,
+    "desc": "Depression level score",
+    "synonyms": ["depression"]
+  },
+  "social_interaction_score": {
+    "datatype": "float",
+    "range": [0.0, 10.0],
+    "mean": 5.985,
+    "median": 5.975,
+    "desc": "Level of social interaction",
+    "synonyms": ["social activity", "interaction"]
+  },
+  "relationship_satisfaction": {
+    "datatype": "float",
+    "range": [0.0, 10.0],
+    "mean": 5.985,
+    "median": 6.03,
+    "desc": "Satisfaction in relationships",
+    "synonyms": ["relationship satisfaction"]
+  },
+  "academic_performance": {
+    "datatype": "float",
+    "range": [0.0, 100.0],
+    "mean": 69.86,
+    "median": 69.71,
+    "desc": "Academic performance score",
+    "synonyms": ["grades", "academic score"]
+  },
+  "work_productivity": {
+    "datatype": "float",
+    "range": [0.0, 100.0],
+    "mean": 69.849,
+    "median": 70.215,
+    "desc": "Work productivity score",
+    "synonyms": ["productivity", "performance"]
+  },
+  "addiction_level": {
+    "datatype": "float",
+    "range": [0.0, 10.0],
+    "mean": 2.824,
+    "median": 2.47,
+    "desc": "Gaming addiction level",
+    "synonyms": ["addiction"]
+  },
+  "multiplayer_ratio": {
+    "datatype": "float",
+    "range": [0.0, 1.0],
+    "mean": 0.5,
+    "median": 0.5,
+    "desc": "Ratio of multiplayer gaming",
+    "synonyms": ["multiplayer usage"]
+  },
+  "toxic_exposure": {
+    "datatype": "float",
+    "range": [0.0, 0.95],
+    "mean": 0.286,
+    "median": 0.26,
+    "desc": "Exposure to toxic gaming environments",
+    "synonyms": ["toxicity"]
+  },
+  "violent_games_ratio": {
+    "datatype": "float",
+    "range": [0.0, 0.99],
+    "mean": 0.4,
+    "median": 0.39,
+    "desc": "Ratio of violent games played",
+    "synonyms": ["violent games"]
+  },
+  "mobile_gaming_ratio": {
+    "datatype": "float",
+    "range": [0.0, 1.0],
+    "mean": 0.5,
+    "median": 0.5,
+    "desc": "Ratio of mobile gaming",
+    "synonyms": ["mobile gaming"]
+  },
+  "night_gaming_ratio": {
+    "datatype": "float",
+    "range": [0.0, 1.0],
+    "mean": 0.5,
+    "median": 0.5,
+    "desc": "Ratio of gaming at night",
+    "synonyms": ["night gaming"]
+  },
+  "weekend_gaming_hours": {
+    "datatype": "float",
+    "range": [0.01, 51.2],
+    "mean": 5.996,
+    "median": 4.96,
+    "desc": "Gaming hours during weekends",
+    "synonyms": ["weekend gaming"]
+  },
+  "friends_gaming_count": {
+    "datatype": "integer",
+    "range": [0, 49],
+    "mean": 24.509,
+    "median": 24.0,
+    "desc": "Number of friends who play games",
+    "synonyms": ["gaming friends"]
+  },
+  "online_friends": {
+    "datatype": "integer",
+    "range": [0, 499],
+    "mean": 249.634,
+    "median": 249.0,
+    "desc": "Number of online friends",
+    "synonyms": ["virtual friends"]
+  },
+  "streaming_hours": {
+    "datatype": "float",
+    "range": [0.0, 17.15],
+    "mean": 2.003,
+    "median": 1.69,
+    "desc": "Hours spent watching game streams",
+    "synonyms": ["streaming"]
+  },
+  "esports_interest": {
+    "datatype": "integer",
+    "range": [0, 10],
+    "mean": 5.0,
+    "median": 5.0,
+    "desc": "Interest level in esports",
+    "synonyms": ["esports"]
+  },
+  "headset_usage": {
+    "datatype": "integer",
+    "range": [0, 1],
+    "mean": 0.5,
+    "median": 0.0,
+    "desc": "Use of headset while gaming",
+    "synonyms": ["headset"]
+  },
+  "microtransactions_spending": {
+    "datatype": "float",
+    "range": [0.0, 6581.12],
+    "mean": 500.48,
+    "median": 353.415,
+    "desc": "Spending on in-game purchases",
+    "synonyms": ["microtransactions"]
+  },
+  "parental_supervision": {
+    "datatype": "integer",
+    "range": [0, 10],
+    "mean": 4.996,
+    "median": 5.0,
+    "desc": "Level of parental supervision",
+    "synonyms": ["parent control"]
+  },
+  "loneliness_score": {
+    "datatype": "float",
+    "range": [0.0, 10.0],
+    "mean": 4.999,
+    "median": 5.03,
+    "desc": "Level of loneliness",
+    "synonyms": ["loneliness"]
+  },
+  "aggression_score": {
+    "datatype": "float",
+    "range": [0.0, 10.0],
+    "mean": 5.0,
+    "median": 4.99,
+    "desc": "Level of aggression",
+    "synonyms": ["aggression"]
+  },
+  "happiness_score": {
+    "datatype": "float",
+    "range": [0.0, 10.0],
+    "mean": 5.982,
+    "median": 6.04,
+    "desc": "Happiness level score",
+    "synonyms": ["happiness"]
+  },
+  "bmi": {
+    "datatype": "float",
+    "range": [4.45, 43.6],
+    "mean": 24.004,
+    "median": 24.05,
+    "desc": "Body Mass Index",
+    "synonyms": ["BMI"]
+  },
+  "screen_time_total": {
+    "datatype": "float",
+    "range": [0.07, 46.6],
+    "mean": 8.002,
+    "median": 7.38,
+    "desc": "Total screen time per day",
+    "synonyms": ["screen time"]
+  },
+  "eye_strain_score": {
+    "datatype": "float",
+    "range": [0.0, 10.0],
+    "mean": 4.999,
+    "median": 5.0,
+    "desc": "Eye strain due to screen usage",
+    "synonyms": ["eye strain"]
+  },
+  "back_pain_score": {
+    "datatype": "float",
+    "range": [0.0, 10.0],
+    "mean": 4.019,
+    "median": 4.02,
+    "desc": "Back pain level",
+    "synonyms": ["back pain"]
+  },
+  "competitive_rank": {
+    "datatype": "integer",
+    "range": [0, 99],
+    "mean": 49.448,
+    "median": 49.0,
+    "desc": "Competitive gaming rank",
+    "synonyms": ["rank"]
+  },
+  "internet_quality": {
+    "datatype": "integer",
+    "range": [1, 10],
+    "mean": 5.503,
+    "median": 5.0,
+    "desc": "Quality of internet connection",
+    "synonyms": ["internet speed"]
+  }
+}
