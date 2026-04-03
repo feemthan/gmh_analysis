@@ -34,7 +34,7 @@ class SQLValidator:
 
         # TODO: Implement SQL validation logic
         # Consider what validation is needed for this use case
-
+        # Check if the sql query is valid and check
         return SQLValidationOutput(
             is_valid=True,
             validated_sql=sql,
