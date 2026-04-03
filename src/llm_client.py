@@ -5,9 +5,13 @@ import os
 import time
 from typing import Any
 
+from dotenv import load_dotenv
+
 from src.types import AnswerGenerationOutput, SQLGenerationOutput
 
-DEFAULT_MODEL = "openai/gpt-5-nano"
+load_dotenv()
+
+DEFAULT_MODEL = "openai/gpt-oss-120b:free"
 
 
 class OpenRouterLLMClient:

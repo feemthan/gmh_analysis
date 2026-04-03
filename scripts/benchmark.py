@@ -60,8 +60,10 @@ def main() -> None:
         for prompt in prompts:
             result = pipeline.run(prompt)
             totals.append(result.timings["total_ms"])
-            success += int(result["status"] == "success")
+            ### This was a dict call instead of a class attribute access method.
+            success += int(result.status == "success")
             count += 1
+            break
 
     summary = {
         "runs": args.runs,
