@@ -9,6 +9,7 @@ from pathlib import Path
 import ast
 
 from dotenv import load_dotenv
+from loguru import logger
 
 from src.types import AnswerGenerationOutput, SQLGenerationOutput
 
@@ -54,7 +55,6 @@ class OpenRouterLLMClient:
 
         # TODO: Implement token counting here
         # Required for efficiency evaluation - see README.md for details.
-        print(res.usage)
         input_price =  COST_CALCULATOR[DEFAULT_MODEL][0]
         output_price = COST_CALCULATOR[DEFAULT_MODEL][1]
 
@@ -62,7 +62,7 @@ class OpenRouterLLMClient:
         output_tokens = res.usage.completion_tokens
 
         cost = (input_tokens * input_price) + (output_tokens * output_price)
-
+        logger.info(f"Cost: {cost}, Input tokens: {input_tokens}, Output tokens: {output_tokens}")
         choices = getattr(res, "choices", None) or []
         if not choices:
             raise RuntimeError("OpenRouter response contained no choices.")
