@@ -5,8 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "openrouter>=0.8.1",
-    "pandas>=3.0.2",
-    "pydantic>=2.12.5",
-    "python-dotenv>=1.2.2",
+  "openrouter>=0.8.1",
+  "pandas>=3.0.2",
+  "pydantic>=2.12.5",
+  "python-dotenv>=1.2.2",
 ]
