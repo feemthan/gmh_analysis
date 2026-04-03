@@ -11,7 +11,7 @@ from src.types import AnswerGenerationOutput, SQLGenerationOutput
 
 load_dotenv()
 
-DEFAULT_MODEL = "openai/gpt-oss-120b:free"
+DEFAULT_MODEL = "qwen/qwen3.6-plus:free"
 
 
 class OpenRouterLLMClient:
