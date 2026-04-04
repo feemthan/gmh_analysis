@@ -3,7 +3,7 @@ from __future__ import annotations
 import sqlite3
 import time
 from pathlib import Path
-from loguru import logger
+# from loguru import logger
 
 from sqlglot import parse_one, exp
 from sqlglot.errors import ParseError
@@ -236,14 +236,12 @@ class AnalyticsPipeline:
         start = time.perf_counter()
 
         # Build context to do a pre hit to the LLM
-        context, (context_cost, context_input_tokens, context_output_tokens) = self.llm.build_context(question, self.session_maintainer)
+        context = self.llm.build_context(question, self.session_maintainer)
         self.session_maintainer["AIresponse"].append(context)
         self.session_maintainer["Humanquestion"].append(question)
 
-        logger.info(f"Context Cost: {context_cost}, Input tokens: {context_input_tokens}, Output tokens: {context_output_tokens}")
         # Stage 1: SQL Generation
-        sql_gen_output, (gen_cost, gen_input_tokens, gen_output_tokens) = self.llm.generate_sql(question, context)
-        logger.info(f"SQL Generation Cost: {gen_cost}, Input tokens: {gen_input_tokens}, Output tokens: {gen_output_tokens}")
+        sql_gen_output = self.llm.generate_sql(question, context)
         sql = sql_gen_output.sql
 
         # Stage 2: SQL Validation
@@ -256,17 +254,10 @@ class AnalyticsPipeline:
         rows = execution_output.rows
 
         # Stage 4: Answer Generation
-        answer_output, (answer_cost, answer_input_tokens, answer_output_tokens) = self.llm.generate_answer(question, sql, rows, self.session_maintainer)
+        answer_output = self.llm.generate_answer(question, sql, rows, self.session_maintainer)
         self.session_maintainer["AIresponse"].append(answer_output.answer)
         self.session_maintainer["Humanquestion"].append(f"Query: {question}\nSQL: {sql}\nRows: {rows}")
 
-        logger.info(f"Answer Generation Cost: {answer_cost}, Input tokens: {answer_input_tokens}, Output tokens: {answer_output_tokens}")
-
-        total_cost = context_cost + gen_cost + answer_cost
-        total_input_tokens = context_input_tokens + gen_input_tokens + answer_input_tokens
-        total_output_tokens = context_output_tokens + gen_output_tokens + answer_output_tokens
-
-        logger.info(f"Total Cost: {total_cost}, Input tokens: {total_input_tokens}, Output tokens: {total_output_tokens}")
 
         # Determine status
         status = "success"

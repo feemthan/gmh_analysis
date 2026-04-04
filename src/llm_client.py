@@ -9,7 +9,7 @@ from pathlib import Path
 import ast
 
 from dotenv import load_dotenv
-# from loguru import logger
+from loguru import logger
 
 from src.types import AnswerGenerationOutput, SQLGenerationOutput
 
@@ -63,7 +63,7 @@ class OpenRouterLLMClient:
         output_tokens = res.usage.completion_tokens
 
         cost = (input_tokens * input_price) + (output_tokens * output_price)
-        # logger.info(f"Cost: {cost}, Input tokens: {input_tokens}, Output tokens: {output_tokens}")
+        logger.info(f"Cost: {cost}, Input tokens: {input_tokens}, Output tokens: {output_tokens}")
 
         self._stats["llm_calls"] += 1
         self._stats["prompt_tokens"] += input_tokens
@@ -76,7 +76,7 @@ class OpenRouterLLMClient:
         content = getattr(getattr(choices[0], "message", None), "content", None)
         if not isinstance(content, str):
             raise RuntimeError("OpenRouter response content is not text.")
-        return content.strip(), (cost, input_tokens, output_tokens)
+        return content.strip()
 
     @staticmethod
     def _extract_sql(text: str) -> str | None:
@@ -126,7 +126,7 @@ class OpenRouterLLMClient:
             user_prompt = f"Previous session context: {session_manager}\n\nQuestion: {question}\n\nTable Metadata:\n{json.dumps(columns_to_llm, ensure_ascii=True)}"
             columns = []
             try:
-                columns, (cost, input_tokens, output_tokens) = self._chat(
+                columns = self._chat(
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt},
@@ -142,7 +142,7 @@ class OpenRouterLLMClient:
                 for key in ast.literal_eval(columns)
                 if key in table_meta_data_context
             }
-            return context, (cost, input_tokens, output_tokens)
+            return context
 
     def generate_sql(self, question: str, context: dict) -> SQLGenerationOutput:
         system_prompt = (
@@ -160,7 +160,7 @@ class OpenRouterLLMClient:
         sql = None
 
         try:
-            text, (cost, input_tokens, output_tokens) = self._chat(
+            text = self._chat(
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
@@ -181,7 +181,7 @@ class OpenRouterLLMClient:
             timing_ms=timing_ms,
             llm_stats=llm_stats,
             error=error,
-        ), (cost, input_tokens, output_tokens)
+        )
 
     def generate_answer(
         self, question: str, sql: str | None, rows: list[dict[str, Any]], session_manager: dict
@@ -198,7 +198,7 @@ class OpenRouterLLMClient:
                     "model": self.model,
                 },
                 error=None,
-            ), None
+            )
         if not rows:
             return AnswerGenerationOutput(
                 answer="Query executed, but no rows were returned.",
@@ -211,7 +211,7 @@ class OpenRouterLLMClient:
                     "model": self.model,
                 },
                 error=None,
-            ), None
+            )
 
         system_prompt = (
             "You are a concise analytics assistant. "
@@ -227,10 +227,9 @@ class OpenRouterLLMClient:
         start = time.perf_counter()
         error = None
         answer = ""
-        cost = input_tokens = output_tokens = None
 
         try:
-            answer, (cost, input_tokens, output_tokens) = self._chat(
+            answer = self._chat(
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
@@ -251,7 +250,7 @@ class OpenRouterLLMClient:
             timing_ms=timing_ms,
             llm_stats=llm_stats,
             error=error,
-        ), (cost, input_tokens, output_tokens)
+        )
 
     def pop_stats(self) -> dict[str, Any]:
         out = dict(self._stats or {})
