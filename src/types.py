@@ -165,9 +165,85 @@ class SQLValidator:
     @classmethod
     def validate(cls, sql: str | None) -> SQLValidationOutput:
         start = time.perf_counter()
+
+        def fail(message: str) -> SQLValidationOutput:
+            return SQLValidationOutput(
+                is_valid=False,
+                validated_sql=None,
+                error=message,
+                timing_ms=(time.perf_counter() - start) * 1000,
+            )
+
+        if sql is None or not sql.strip():
+            return fail("No SQL provided")
+
+        sql = sql.strip()
+
+        # Optional hard precheck: only one statement
+        if ";" in sql.rstrip(";"):
+            return fail("Multiple SQL statements are not allowed")
+
+        try:
+            ast = parse_one(sql, read="sqlite")
+        except ParseError as e:
+            return fail(f"SQL parse error: {e}")
+        except Exception as e:
+            return fail(f"SQL validation failed during parsing: {e}")
+
+        # 1) Only SELECT queries allowed
+        if not isinstance(ast, exp.Select):
+            return fail("Only SELECT statements are allowed")
+
+        # 2) Reject dangerous statement types anywhere
+        for node_type in cls.DISALLOWED_NODES:
+            if next(ast.find_all(node_type), None) is not None:
+                return fail(f"Disallowed SQL operation: {node_type.__name__}")
+
+        # 3) No JOINs for single-table use case
+        if next(ast.find_all(exp.Join), None) is not None:
+            return fail("JOIN is not allowed")
+
+        # 4) No subqueries for v1 validator
+        if next(ast.find_all(exp.Subquery), None) is not None:
+            return fail("Subqueries are not allowed")
+
+        # 5) Validate tables
+        tables = list(ast.find_all(exp.Table))
+        if not tables:
+            return fail("Query must reference a table")
+
+        for table in tables:
+            table_name = table.name
+            if table_name != cls.ALLOWED_TABLE:
+                return fail(f"Disallowed table: {table_name}")
+
+        # 6) Validate columns
+        for column in ast.find_all(exp.Column):
+            column_name = column.name
+            if column_name not in cls.ALLOWED_COLUMNS:
+                return fail(f"Disallowed or unknown column: {column_name}")
+
+        # 7) Validate functions
+        for func in ast.find_all(exp.Func):
+            func_name = func.sql_name()
+            if not func_name:
+                func_name = func.__class__.__name__
+            func_name = func_name.upper()
+
+            if func_name not in cls.ALLOWED_FUNCTIONS:
+                return fail(f"Disallowed function: {func_name}")
+
+        # 8) Optional: disallow SELECT *
+        # comment this out if you want to allow it
+        for _ in ast.find_all(exp.Star):
+            return fail("SELECT * is not allowed")
+
+        # 9) Normalize SQL back to SQLite dialect
+        validated_sql = ast.sql(dialect="sqlite")
+
         return SQLValidationOutput(
             is_valid=True,
-            validated_sql=sql,
+            validated_sql=validated_sql,
             error=None,
             timing_ms=(time.perf_counter() - start) * 1000,
         )
