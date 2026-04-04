@@ -56,14 +56,15 @@ class OpenRouterLLMClient:
 
         # TODO: Implement token counting here
         # Required for efficiency evaluation - see README.md for details.
-        input_price =  COST_CALCULATOR[self.model][0]
-        output_price = COST_CALCULATOR[self.model][1]
+        # input_price =  COST_CALCULATOR[self.model][0]
+        # output_price = COST_CALCULATOR[self.model][1]
 
         input_tokens = res.usage.prompt_tokens
         output_tokens = res.usage.completion_tokens
 
-        cost = (input_tokens * input_price) + (output_tokens * output_price)
-        logger.info(f"Cost: {cost}, Input tokens: {input_tokens}, Output tokens: {output_tokens}")
+        # cost = (input_tokens * input_price) + (output_tokens * output_price)
+        # logger.info(f"Cost: {cost}, Input tokens: {input_tokens}, Output tokens: {output_tokens}")
+        logger.info(f"Input tokens: {input_tokens}, Output tokens: {output_tokens}")
 
         self._stats["llm_calls"] += 1
         self._stats["prompt_tokens"] += input_tokens
