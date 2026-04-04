@@ -354,7 +354,7 @@ with input_col:
     st.text_input(
         "Message",
         value="",
-        placeholder="Ask a question like: show average caffeine intake by gender",
+        placeholder="Ask a question like: How does gaming addiction level vary between genders?",
         label_visibility="collapsed",
         key="chat_input_box",
         on_change=on_send,
