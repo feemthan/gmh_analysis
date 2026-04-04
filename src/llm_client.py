@@ -19,6 +19,7 @@ DEFAULT_MODEL = "qwen/qwen3.6-plus:free"
 BASE_DIR = Path(__file__).resolve().parents[1]
 TABLE_META_DATA_CONTEXT = BASE_DIR / "src"/ "utils" / "table_metadata_context.json"
 
+# TODO : Add cost for different models here when required.
 COST_CALCULATOR = {
     "qwen/qwen3.6-plus:free": [0, 0],  # costs [input, ouptput tokens]
 }
@@ -55,8 +56,8 @@ class OpenRouterLLMClient:
 
         # TODO: Implement token counting here
         # Required for efficiency evaluation - see README.md for details.
-        input_price =  COST_CALCULATOR[DEFAULT_MODEL][0]
-        output_price = COST_CALCULATOR[DEFAULT_MODEL][1]
+        input_price =  COST_CALCULATOR[self.model][0]
+        output_price = COST_CALCULATOR[self.model][1]
 
         input_tokens = res.usage.prompt_tokens
         output_tokens = res.usage.completion_tokens
