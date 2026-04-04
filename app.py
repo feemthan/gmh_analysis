@@ -27,8 +27,10 @@ def chat() -> dict[str, str]:
     result = pipeline.run(question=query)
 
     response = asdict(result)
+    total_llm_stats = response["total_llm_stats"]
     response = response["answer"]
-    print(f"Received message: {query} \nResponse: {response}")
+    # print(f"Received message: {query}\n\nResponse: {response}\n\n")
+    print(f"Total LLM stats: {total_llm_stats}")
     return jsonify({"response": response})
 
 
