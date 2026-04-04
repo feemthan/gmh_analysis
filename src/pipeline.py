@@ -166,8 +166,8 @@ class SQLValidator:
 
         # 8) Optional: disallow SELECT *
         # comment this out if you want to allow it
-        for _ in ast.find_all(exp.Star):
-            return fail("SELECT * is not allowed")
+        # for _ in ast.find_all(exp.Star):
+        #     return fail("SELECT * is not allowed")
 
         # 9) Normalize SQL back to SQLite dialect
         validated_sql = ast.sql(dialect="sqlite")
@@ -249,12 +249,12 @@ class AnalyticsPipeline:
         rows = execution_output.rows
 
         # Stage 4: Answer Generation
-        answer_output, (answer_cost, answer_input_tokens, anser_output_tokens) = self.llm.generate_answer(question, sql, rows)
-        logger.info(f"Answer Generation Cost: {answer_cost}, Input tokens: {answer_input_tokens}, Output tokens: {anser_output_tokens}")
+        answer_output, (answer_cost, answer_input_tokens, answer_output_tokens) = self.llm.generate_answer(question, sql, rows)
+        logger.info(f"Answer Generation Cost: {answer_cost}, Input tokens: {answer_input_tokens}, Output tokens: {answer_output_tokens}")
 
         total_cost = context_cost + gen_cost + answer_cost
         total_input_tokens = context_input_tokens + gen_input_tokens + answer_input_tokens
-        total_output_tokens = context_output_tokens + gen_output_tokens + anser_output_tokens
+        total_output_tokens = context_output_tokens + gen_output_tokens + answer_output_tokens
 
         logger.info(f"Total Cost: {total_cost}, Input tokens: {total_input_tokens}, Output tokens: {total_output_tokens}")
 
