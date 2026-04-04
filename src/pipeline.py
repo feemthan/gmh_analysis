@@ -227,12 +227,19 @@ class AnalyticsPipeline:
         self.db_path = Path(db_path)
         self.llm = llm_client or build_default_llm_client()
         self.executor = SQLiteExecutor(self.db_path)
+        self.session_maintainer = {
+            "AIresponse": [],
+            "Humanquestion": [],
+        }
 
     def run(self, question: str, request_id: str | None = None) -> PipelineOutput:
         start = time.perf_counter()
 
         # Build context to do a pre hit to the LLM
-        context, (context_cost, context_input_tokens, context_output_tokens) = self.llm.build_context(question)
+        context, (context_cost, context_input_tokens, context_output_tokens) = self.llm.build_context(question, self.session_maintainer)
+        self.session_maintainer["AIresponse"].append(context)
+        self.session_maintainer["Humanquestion"].append(question)
+
         logger.info(f"Context Cost: {context_cost}, Input tokens: {context_input_tokens}, Output tokens: {context_output_tokens}")
         # Stage 1: SQL Generation
         sql_gen_output, (gen_cost, gen_input_tokens, gen_output_tokens) = self.llm.generate_sql(question, context)
@@ -249,7 +256,10 @@ class AnalyticsPipeline:
         rows = execution_output.rows
 
         # Stage 4: Answer Generation
-        answer_output, (answer_cost, answer_input_tokens, answer_output_tokens) = self.llm.generate_answer(question, sql, rows)
+        answer_output, (answer_cost, answer_input_tokens, answer_output_tokens) = self.llm.generate_answer(question, sql, rows, self.session_maintainer)
+        self.session_maintainer["AIresponse"].append(answer_output.answer)
+        self.session_maintainer["Humanquestion"].append(f"Query: {question}\nSQL: {sql}\nRows: {rows}")
+
         logger.info(f"Answer Generation Cost: {answer_cost}, Input tokens: {answer_input_tokens}, Output tokens: {answer_output_tokens}")
 
         total_cost = context_cost + gen_cost + answer_cost

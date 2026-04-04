@@ -95,7 +95,7 @@ class OpenRouterLLMClient:
             return text[idx:].strip()
         return None
 
-    def build_context(self, question: str) -> dict[str, Any]:
+    def build_context(self, question: str, session_manager: dict) -> dict[str, Any]:
 
             table_meta_data_context = {}
             if TABLE_META_DATA_CONTEXT.exists():
@@ -109,7 +109,7 @@ class OpenRouterLLMClient:
             ]
 
             system_prompt = """
-                Your task is to identify the minimum set of relevant database columns needed to answer a user’s question.
+                Your task is to identify the minimum set of relevant database columns needed to answer a user's question.
 
                 Rules:
                 - Use only the columns provided in the schema
@@ -118,10 +118,11 @@ class OpenRouterLLMClient:
                 - Do NOT include explanations, reasoning, or extra text
                 - Do NOT return anything other than the list
                 - Ensure the output is valid Python list syntax
+                - Use the previous context of the conversation to inform your selection, but do not feel compelled to use it if the question can be answered with fewer columns.3
 
             """
 
-            user_prompt = f"Question: {question}\n\nTable Metadata:\n{json.dumps(columns_to_llm, ensure_ascii=True)}"
+            user_prompt = f"Previous session context: {session_manager}\n\nQuestion: {question}\n\nTable Metadata:\n{json.dumps(columns_to_llm, ensure_ascii=True)}"
             columns = []
             try:
                 columns, (cost, input_tokens, output_tokens) = self._chat(
@@ -182,7 +183,7 @@ class OpenRouterLLMClient:
         ), (cost, input_tokens, output_tokens)
 
     def generate_answer(
-        self, question: str, sql: str | None, rows: list[dict[str, Any]]
+        self, question: str, sql: str | None, rows: list[dict[str, Any]], session_manager: dict
     ) -> AnswerGenerationOutput:
         if not sql:
             return AnswerGenerationOutput(
@@ -196,7 +197,7 @@ class OpenRouterLLMClient:
                     "model": self.model,
                 },
                 error=None,
-            )
+            ), None
         if not rows:
             return AnswerGenerationOutput(
                 answer="Query executed, but no rows were returned.",
@@ -209,13 +210,14 @@ class OpenRouterLLMClient:
                     "model": self.model,
                 },
                 error=None,
-            )
+            ), None
 
         system_prompt = (
             "You are a concise analytics assistant. "
             "Use only the provided SQL results. Do not invent data."
         )
         user_prompt = (
+            f"Session context: {session_manager}\n\n"
             f"Question:\n{question}\n\nSQL:\n{sql}\n\n"
             f"Rows (JSON):\n{json.dumps(rows[:30], ensure_ascii=True)}\n\n"
             "Write a concise answer in plain English."
@@ -224,6 +226,7 @@ class OpenRouterLLMClient:
         start = time.perf_counter()
         error = None
         answer = ""
+        cost = input_tokens = output_tokens = None
 
         try:
             answer, (cost, input_tokens, output_tokens) = self._chat(
