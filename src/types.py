@@ -140,3 +140,34 @@ class SQLValidator:
         "competitive_rank",
         "internet_quality",
     }
+
+    ALLOWED_FUNCTIONS = {
+        "COUNT",
+        "AVG",
+        "MIN",
+        "MAX",
+        "SUM",
+        "LOWER",
+        "UPPER",
+        "ROUND",
+    }
+
+    DISALLOWED_NODES = (
+        exp.Insert,
+        exp.Update,
+        exp.Delete,
+        exp.Drop,
+        exp.Alter,
+        exp.Create,
+        exp.TruncateTable,
+        exp.Merge,
+    )
+    @classmethod
+    def validate(cls, sql: str | None) -> SQLValidationOutput:
+        start = time.perf_counter()
+        return SQLValidationOutput(
+            is_valid=True,
+            validated_sql=sql,
+            error=None,
+            timing_ms=(time.perf_counter() - start) * 1000,
+        )
