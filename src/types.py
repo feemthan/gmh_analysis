@@ -1,10 +1,12 @@
 """Type definitions for SQL Agent pipeline input/output structures."""
 
 from __future__ import annotations
-
+import time
 from dataclasses import dataclass, field
 from typing import Any
 
+from sqlglot import parse_one, exp
+from sqlglot.errors import ParseError
 
 @dataclass
 class PipelineInput:
