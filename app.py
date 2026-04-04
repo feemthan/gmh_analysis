@@ -18,13 +18,13 @@ app = Flask(__name__)
 def chat() -> dict[str, str]:
     data = request.get_json()
     # response = run_pipeline(user_message)
-    query = data.get("message", "")
+    query = data.get("query", "")
 
     db_path = _ensure_gaming_db()
 
     pipeline = AnalyticsPipeline(db_path=db_path)
 
-    result = pipeline.run(query)
+    result = pipeline.run(question=query)
 
     response = asdict(result)
     response = response["answer"]
