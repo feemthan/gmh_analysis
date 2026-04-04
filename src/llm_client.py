@@ -9,7 +9,7 @@ from pathlib import Path
 import ast
 
 from dotenv import load_dotenv
-from loguru import logger
+# from loguru import logger
 
 from src.types import AnswerGenerationOutput, SQLGenerationOutput
 
@@ -62,7 +62,13 @@ class OpenRouterLLMClient:
         output_tokens = res.usage.completion_tokens
 
         cost = (input_tokens * input_price) + (output_tokens * output_price)
-        logger.info(f"Cost: {cost}, Input tokens: {input_tokens}, Output tokens: {output_tokens}")
+        # logger.info(f"Cost: {cost}, Input tokens: {input_tokens}, Output tokens: {output_tokens}")
+
+        self._stats["llm_calls"] += 1
+        self._stats["prompt_tokens"] += input_tokens
+        self._stats["completion_tokens"] += output_tokens
+        self._stats["total_tokens"] += input_tokens + output_tokens
+
         choices = getattr(res, "choices", None) or []
         if not choices:
             raise RuntimeError("OpenRouter response contained no choices.")
