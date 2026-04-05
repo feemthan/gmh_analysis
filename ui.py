@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+import html
 
 import requests
 import streamlit as st
@@ -23,8 +24,8 @@ st.set_page_config(page_title=PAGE_TITLE, page_icon="💬", layout="wide")
 def init_state() -> None:
     if "messages" not in st.session_state:
         st.session_state.messages = []
-    if "pending_prompt" not in st.session_state:
-        st.session_state.pending_prompt = None
+    if "is_sending" not in st.session_state:
+        st.session_state.is_sending = False
 
 
 init_state()
@@ -45,13 +46,6 @@ st.markdown(
         max-width: 1100px;
         padding-top: 2rem;
         padding-bottom: 8rem;
-    }
-
-    .chat-shell {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
     }
 
     .hero-wrap {
@@ -89,6 +83,7 @@ st.markdown(
     .msg-row {
         display: flex;
         width: 100%;
+        margin-bottom: 0.8rem;
     }
 
     .msg-row.user {
@@ -123,22 +118,6 @@ st.markdown(
         border: 1px solid #1f2937;
     }
 
-    .answer-card {
-        background: #0b1220;
-        border: 1px solid #1e293b;
-        border-radius: 16px;
-        padding: 0.9rem 1rem;
-        margin-top: 0.6rem;
-    }
-
-    .section-label {
-        font-size: 0.8rem;
-        color: #94a3b8;
-        margin-bottom: 0.35rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-    }
-
     .composer-shell {
         position: fixed;
         bottom: 0;
@@ -166,7 +145,8 @@ st.markdown(
         padding-bottom: 0.8rem !important;
     }
 
-    div.stButton > button {
+    div.stButton > button,
+    div[data-testid="stFormSubmitButton"] > button {
         width: 100%;
         border-radius: 14px;
         height: 3rem;
@@ -176,7 +156,8 @@ st.markdown(
         font-weight: 600;
     }
 
-    div.stButton > button:hover {
+    div.stButton > button:hover,
+    div[data-testid="stFormSubmitButton"] > button:hover {
         background: #1d4ed8;
         color: white;
     }
@@ -226,73 +207,70 @@ def render_assistant_payload(payload: Dict[str, Any]) -> str:
     return "\n\n".join(parts)
 
 
-# -----------------------------
-# Send callback
-# -----------------------------
-def on_send():
-    text = st.session_state.chat_input_box.strip()
-    if text:
-        st.session_state.pending_prompt = text
-        st.session_state.chat_input_box = ""
+def safe_text(text: Any) -> str:
+    return html.escape("" if text is None else str(text))
 
 
-# -----------------------------
-# Process pending prompt
-# -----------------------------
-if st.session_state.pending_prompt:
-    prompt_to_send = st.session_state.pending_prompt
-    st.session_state.pending_prompt = None
-
+def append_user_message(text: str) -> None:
     st.session_state.messages.append(
         {
             "role": "user",
-            "content": prompt_to_send,
+            "content": text,
         }
     )
 
-    with st.spinner("Generating response..."):
-        try:
-            api_json = call_chat_api(prompt_to_send)
-            assistant_text = render_assistant_payload(api_json)
-            st.session_state.messages.append(
-                {
-                    "role": "assistant",
-                    "content": assistant_text,
-                    "json": api_json,
-                }
-            )
-        except requests.HTTPError as e:
-            st.session_state.messages.append(
-                {
-                    "role": "assistant",
-                    "content": f"HTTP error from backend: {e}",
-                    "json": {"error": str(e)},
-                }
-            )
-        except requests.RequestException as e:
-            st.session_state.messages.append(
-                {
-                    "role": "assistant",
-                    "content": f"Backend connection error: {e}",
-                    "json": {"error": str(e)},
-                }
-            )
-        except Exception as e:
-            st.session_state.messages.append(
-                {
-                    "role": "assistant",
-                    "content": f"Unexpected error: {e}",
-                    "json": {"error": str(e)},
-                }
-            )
 
-    st.rerun()
+def append_assistant_message(content: str, payload: Dict[str, Any] | None = None) -> None:
+    message: Dict[str, Any] = {
+        "role": "assistant",
+        "content": content,
+    }
+    if payload is not None:
+        message["json"] = payload
+    st.session_state.messages.append(message)
+
+
+def process_prompt(prompt: str) -> None:
+    cleaned = prompt.strip()
+    if not cleaned:
+        return
+
+    if st.session_state.is_sending:
+        return
+
+    st.session_state.is_sending = True
+    append_user_message(cleaned)
+
+    try:
+        with st.spinner("Generating response..."):
+            api_json = call_chat_api(cleaned)
+        assistant_text = render_assistant_payload(api_json)
+        append_assistant_message(assistant_text, api_json)
+
+    except requests.HTTPError as e:
+        append_assistant_message(
+            f"HTTP error from backend: {e}",
+            {"error": str(e)},
+        )
+    except requests.RequestException as e:
+        append_assistant_message(
+            f"Backend connection error: {e}",
+            {"error": str(e)},
+        )
+    except Exception as e:
+        append_assistant_message(
+            f"Unexpected error: {e}",
+            {"error": str(e)},
+        )
+    finally:
+        st.session_state.is_sending = False
 
 
 # -----------------------------
-# Header controls
+# Header
 # -----------------------------
 st.markdown(f"### {PAGE_TITLE}")
+
 
 # -----------------------------
 # Main area
@@ -312,26 +290,26 @@ if not st.session_state.messages:
 else:
     st.markdown('<div class="messages-wrap">', unsafe_allow_html=True)
 
-    for msg in st.session_state.messages:
-        role = msg["role"]
-        content = msg["content"]
+    for _, msg in enumerate(st.session_state.messages):
+        role = msg.get("role", "assistant")
+        content = safe_text(msg.get("content", ""))
 
         if role == "user":
             st.markdown(
-                f'''
+                f"""
                 <div class="msg-row user">
                     <div class="bubble user">{content}</div>
                 </div>
-                ''',
+                """,
                 unsafe_allow_html=True,
             )
         else:
             st.markdown(
-                f'''
+                f"""
                 <div class="msg-row assistant">
                     <div class="bubble assistant">{content}</div>
                 </div>
-                ''',
+                """,
                 unsafe_allow_html=True,
             )
             if "json" in msg:
@@ -349,17 +327,30 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-input_col, send_col = st.columns([8, 1])
-with input_col:
-    st.text_input(
-        "Message",
-        value="",
-        placeholder="Ask a question like: How does gaming addiction level vary between genders?",
-        label_visibility="collapsed",
-        key="chat_input_box",
-        on_change=on_send,
-    )
-with send_col:
-    st.button("Send", on_click=on_send, use_container_width=True)
+with st.form("chat_form", clear_on_submit=True):
+    input_col, send_col = st.columns([8, 1])
+
+    with input_col:
+        prompt = st.text_input(
+            "Message",
+            value="",
+            placeholder="Ask a question like: How does gaming addiction level vary between genders?",
+            label_visibility="collapsed",
+        )
+
+    with send_col:
+        submitted = st.form_submit_button(
+            "Send",
+            use_container_width=True,
+            disabled=st.session_state.is_sending,
+        )
 
 st.markdown("</div></div>", unsafe_allow_html=True)
+
+
+# -----------------------------
+# Handle submit
+# -----------------------------
+if submitted:
+    process_prompt(prompt)
+    st.rerun()
