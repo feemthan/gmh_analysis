@@ -63,8 +63,8 @@ def main() -> None:
             ### This was a dict call instead of a class attribute access method.
             success += int(result.status == "success")
             count += 1
-            break
-        break
+        #     break
+        # break
 
     summary = {
         "runs": args.runs,
