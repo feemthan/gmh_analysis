@@ -11,6 +11,23 @@ API_URL = "http://localhost:5000/chat"
 REQUEST_TIMEOUT = 120
 PAGE_TITLE = "Senior Full Stack Engineer (GenAI-Labs) Take-Home Assignment"
 
+SUGGESTED_QUESTIONS: List[str] = [
+    "How does gaming addiction level vary between genders?",
+    "How does anxiety change as addiction level increases?",
+    "Roughly how many respondents fall into the highest addiction range?",
+    "Which age groups report the highest addiction levels?",
+    "Which gender has the highest average anxiety score?",
+    "Which age group has the lowest average anxiety score?",
+    "What share of respondents appear to have low addiction levels?",
+    "Compare average addiction levels across age groups.",
+    "What is the average anxiety score for each gender?",
+    "Which addiction level bucket has the largest number of respondents?",
+    "Do younger respondents generally report higher addiction levels than older respondents?",
+    "Show the top five age groups by average anxiety score.",
+]
+
+CUSTOM_OPTION = "✏️  Type my own question..."
+
 
 # -----------------------------
 # Page setup
@@ -45,7 +62,7 @@ st.markdown(
     .main .block-container {
         max-width: 1100px;
         padding-top: 2rem;
-        padding-bottom: 8rem;
+        padding-bottom: 10rem;
     }
 
     .hero-wrap {
@@ -136,11 +153,15 @@ st.markdown(
         padding: 0 1rem;
     }
 
-    div[data-testid="stTextInputRootElement"] input {
+    div[data-testid="stTextInputRootElement"] input,
+    div[data-baseweb="select"] > div {
         background: #111827 !important;
         color: #e5e7eb !important;
         border-radius: 14px !important;
         border: 1px solid #334155 !important;
+    }
+
+    div[data-testid="stTextInputRootElement"] input {
         padding-top: 0.8rem !important;
         padding-bottom: 0.8rem !important;
     }
@@ -281,7 +302,7 @@ if not st.session_state.messages:
         <div class="hero-wrap">
             <div class="hero-title">Ask anything about your data</div>
             <div class="hero-subtitle">
-                Type a question below. The backend will generate SQL and return a JSON response that is shown in the chat.
+                Pick a suggested question or type your own below. The backend will generate SQL and return a JSON response that is shown in the chat.
             </div>
         </div>
         """,
@@ -328,13 +349,20 @@ st.markdown(
 )
 
 with st.form("chat_form", clear_on_submit=True):
+    selected = st.selectbox(
+        "Suggested questions",
+        options=[CUSTOM_OPTION] + SUGGESTED_QUESTIONS,
+        index=0,
+        label_visibility="collapsed",
+    )
+
     input_col, send_col = st.columns([8, 1])
 
     with input_col:
         prompt = st.text_input(
             "Message",
             value="",
-            placeholder="Ask a question like: How does gaming addiction level vary between genders?",
+            placeholder="Type your own question here (used only when 'Type my own question...' is selected above)",
             label_visibility="collapsed",
         )
 
@@ -352,5 +380,6 @@ st.markdown("</div></div>", unsafe_allow_html=True)
 # Handle submit
 # -----------------------------
 if submitted:
-    process_prompt(prompt)
+    final_prompt = prompt if selected == CUSTOM_OPTION else selected
+    process_prompt(final_prompt)
     st.rerun()
