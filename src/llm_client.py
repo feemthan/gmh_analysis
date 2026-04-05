@@ -7,6 +7,7 @@ from typing import Any
 from pathlib import Path
 # convert string to list for context building
 import ast
+import re
 
 from dotenv import load_dotenv
 from loguru import logger
@@ -92,7 +93,15 @@ class OpenRouterLLMClient:
             except json.JSONDecodeError:
                 pass
         lower = text.lower()
-        idx = lower.find("select ")
+
+        pattern = r"\b(select|drop|delete|update)\b"
+        match = re.search(pattern, lower, re.IGNORECASE)
+
+        if match:
+            idx = match.start()
+        else:
+            idx = -1
+
         if idx >= 0:
             return text[idx:].strip()
         return None
