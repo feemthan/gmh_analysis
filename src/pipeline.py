@@ -227,7 +227,7 @@ class AnalyticsPipeline:
         self.db_path = Path(db_path)
         self.llm = llm_client or build_default_llm_client()
         self.executor = SQLiteExecutor(self.db_path)
-        self.session_maintainer = {
+        self.session_manager = {
             "AIresponse": [],
             "Humanquestion": [],
         }
@@ -236,9 +236,7 @@ class AnalyticsPipeline:
         start = time.perf_counter()
 
         # Build context to do a pre hit to the LLM
-        context = self.llm.build_context(question, self.session_maintainer)
-        self.session_maintainer["AIresponse"].append(context)
-        self.session_maintainer["Humanquestion"].append(question)
+        context = self.llm.build_context(question, self.session_manager)
 
         # Stage 1: SQL Generation
         sql_gen_output = self.llm.generate_sql(question, context)
@@ -254,9 +252,9 @@ class AnalyticsPipeline:
         rows = execution_output.rows
 
         # Stage 4: Answer Generation
-        answer_output = self.llm.generate_answer(question, sql, rows, self.session_maintainer)
-        self.session_maintainer["AIresponse"].append(answer_output.answer)
-        self.session_maintainer["Humanquestion"].append(f"Query: {question}\nSQL: {sql}\nRows: {rows}")
+        answer_output = self.llm.generate_answer(question, sql, rows, self.session_manager)
+        self.session_manager["AIresponse"].append(answer_output.answer)
+        self.session_manager["Humanquestion"].append(f"Query: {question}\nSQL: {sql}\nRows: {rows}")
 
 
         # Determine status
