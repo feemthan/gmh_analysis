@@ -13,6 +13,10 @@ from src.pipeline import AnalyticsPipeline  # noqa: E402
 
 app = Flask(__name__)
 
+session_manager = {
+    "AIresponse": [],
+    "Humanquestion": [],
+}
 
 @app.route("/chat", methods=["POST"])
 def chat() -> dict[str, str]:
@@ -21,8 +25,7 @@ def chat() -> dict[str, str]:
     query = data.get("query", "")
 
     db_path = _ensure_gaming_db()
-
-    pipeline = AnalyticsPipeline(db_path=db_path)
+    pipeline = AnalyticsPipeline(db_path=db_path, session_manager=session_manager)
 
     result = pipeline.run(question=query)
 

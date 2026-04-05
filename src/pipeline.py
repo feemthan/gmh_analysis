@@ -223,11 +223,12 @@ class AnalyticsPipeline:
         self,
         db_path: str | Path = DEFAULT_DB_PATH,
         llm_client: OpenRouterLLMClient | None = None,
+        session_manager = dict | None,
     ) -> None:
         self.db_path = Path(db_path)
         self.llm = llm_client or build_default_llm_client()
         self.executor = SQLiteExecutor(self.db_path)
-        self.session_manager = {
+        self.session_manager = session_manager or {
             "AIresponse": [],
             "Humanquestion": [],
         }
