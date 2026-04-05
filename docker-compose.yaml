@@ -1,0 +1,16 @@
+services:
+  backend:
+    build: .
+    command: uv run app.py
+    ports:
+      - "5000:5000"
+
+  ui:
+    build: .
+    command: uv run streamlit run ui.py --server.address=0.0.0.0 --server.port=8501
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    environment:
+      - API_URL=http://backend:5000/chat

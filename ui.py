@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict, List
 import html
 
@@ -7,7 +8,8 @@ import streamlit as st
 # -----------------------------
 # Config
 # -----------------------------
-API_URL = "http://localhost:5000/chat"
+API_URL = os.getenv("API_URL", "http://localhost:5000/chat")
+
 REQUEST_TIMEOUT = 120
 PAGE_TITLE = "Senior Full Stack Engineer (GenAI-Labs) Take-Home Assignment"
 
