@@ -138,14 +138,32 @@ class OpenRouterLLMClient:
             except Exception as exc:
                 print(f"Error building LLM context: {exc}")
 
-            context = {
-                key: table_meta_data_context[key]
-                for key in ast.literal_eval(columns)
-                if key in table_meta_data_context
-            }
-            return context
+            if not columns:
+                print("LLM returned empty context. Proceeding with no columns.")
+                return {}
+            else:
+                context = {
+                    key: table_meta_data_context[key]
+                    for key in ast.literal_eval(columns)
+                    if key in table_meta_data_context
+                }
+                return context
 
     def generate_sql(self, question: str, context: dict) -> SQLGenerationOutput:
+        if not context:
+            return SQLGenerationOutput(
+                sql=None,
+                timing_ms=0.0,
+                llm_stats={
+                    "llm_calls": 0,
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0,
+                    "model": self.model,
+                },
+                error="No relevant columns identified for the question.",
+            )
+
         system_prompt = (
             "You are a SQL assistant. "
             "Generate SQLite SELECT queries from natural language questions. "
