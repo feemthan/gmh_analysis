@@ -8,18 +8,32 @@
 
 Describe how you approached this assignment and what key problems you identified and solved.
 
-- [ ] **System works correctly end-to-end**
+- [X] **System works correctly end-to-end**
 
 **What were the main challenges you identified?**
 
 ```
 [Describe the key problems you needed to solve for the system to work correctly]
+1. Local code setup using UV.
+2. Dataset analysis for meta data extraction.
+3. OPENROUTER Integration with key (this currently has a lot of issues due to rate limiting for free tier).
+4. Column filter for context before sql query generation for drilling down the required rows to reduce tokens and use the meta data efficiently
+5. Token calculation
+6. SQL generation needed prompts modification.
+7. SQL validation implentation.
+8. front and backend development using streamlit and flask.
+9. Session management for the backend.
+10. Dockerization.
 ```
 
 **What was your approach?**
 
 ```
 [Explain your solution at a high level. What did you implement and why?]
+I have implemented a Text to SQL pipeline using the skeleton code provided.
+I added context wise column filtering, sql generation and validation. This was then used for token calculation.
+A raw UI and Backend code base was written for this project.
+The project was dockerized for reproducibility.
 ```
 
 ---
@@ -27,54 +41,58 @@ Describe how you approached this assignment and what key problems you identified
 ## Observability
 
 - [ ] **Logging**
-  - Description:
 
-- [ ] **Metrics**
   - Description:
+- [X] **Metrics**
 
+  - Description:
 - [ ] **Tracing**
+
   - Description:
 
 ---
 
 ## Validation & Quality Assurance
 
-- [ ] **SQL validation**
-  - Description:
+- [X] **SQL validation**
 
+  - Description:
 - [ ] **Answer quality**
-  - Description:
 
+  - Description:
 - [ ] **Result consistency**
-  - Description:
 
+  - Description:
 - [ ] **Error handling**
+
   - Description:
 
 ---
 
 ## Maintainability
 
-- [ ] **Code organization**
-  - Description:
+- [X] **Code organization**
 
-- [ ] **Configuration**
   - Description:
+- [X] **Configuration**
 
-- [ ] **Error handling**
   - Description:
+- [X] **Error handling**
 
+  - Description:
 - [ ] **Documentation**
+
   - Description:
 
 ---
 
 ## LLM Efficiency
 
-- [ ] **Token usage optimization**
-  - Description:
+- [X] **Token usage optimization**
 
-- [ ] **Efficient LLM requests**
+  - Description:
+- [X] **Efficient LLM requests**
+
   - Description:
 
 ---
@@ -82,15 +100,16 @@ Describe how you approached this assignment and what key problems you identified
 ## Testing
 
 - [ ] **Unit tests**
-  - Description:
 
+  - Description:
 - [ ] **Integration tests**
-  - Description:
 
+  - Description:
 - [ ] **Performance tests**
-  - Description:
 
+  - Description:
 - [ ] **Edge case coverage**
+
   - Description:
 
 ---
@@ -99,16 +118,17 @@ Describe how you approached this assignment and what key problems you identified
 
 **Only complete this section if you implemented the optional follow-up questions feature.**
 
-- [ ] **Intent detection for follow-ups**
+- [X] **Intent detection for follow-ups**
+
   - Description: [How does your system decide if a follow-up needs new SQL or uses existing context?]
+- [X] **Context-aware SQL generation**
 
-- [ ] **Context-aware SQL generation**
   - Description: [How does your system use conversation history to generate SQL for follow-ups?]
+- [X] **Context persistence**
 
-- [ ] **Context persistence**
   - Description: [How does your system maintain state across multiple conversation turns?]
+- [X] **Ambiguity resolution**
 
-- [ ] **Ambiguity resolution**
   - Description: [How does your system resolve ambiguous references like "what about males?"]
 
 **Approach summary:**
@@ -166,6 +186,6 @@ Include your before/after benchmark results here.
 
 ---
 
-**Completed by:** [Your Name]
-**Date:** [Date]
-**Time spent:** [Hours spent on assignment]
+**Completed by:** Mohamed Faheem Thanveer
+**Date:** 05/04/2026
+**Time spent:** 12
