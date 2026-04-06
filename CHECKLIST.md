@@ -8,7 +8,7 @@
 
 Describe how you approached this assignment and what key problems you identified and solved.
 
-- [X] **System works correctly end-to-end**
+- [x] **System works correctly end-to-end**
 
 **What were the main challenges you identified?**
 
@@ -40,77 +40,91 @@ The project was dockerized for reproducibility.
 
 ## Observability
 
-- [X] **Logging**
-
+- [x] **Logging**
   - Description:
-- [X] **Metrics**
+    I usued my usual logger loguru to check outputs after sql generation and token calculations.
+    For validation checker logging was very useful to find the exact places improvements were necessary
+    Maybe better logging could have been done for some steps in the pipeline.
 
+- [x] **Metrics**
   - Description:
-- [X] **Tracing**
 
+  Super happy to see the 100% on completion. But I am not sure if the ms is as per the examiners expectation.
+  I think because I used openai, these numbers may seem inflated. I was really annoyed with the sluggish openrouter and ollama.
+  In the essence of speed, I had to resort to openai.
+
+- [x] **Tracing**
   - Description:
 
 ---
 
 ## Validation & Quality Assurance
 
-- [X] **SQL validation**
-
+- [x] **SQL validation**
   - Description:
-- [X] **Answer quality**
+    A fair attempt has been made to give a rule based sql validation step.
 
+- [x] **Answer quality**
   - Description:
-- [X] **Result consistency**
+    I think this was the best I can do for the given time and timeframe. Adding more thought could definitely have improved the results.
 
+- [x] **Result consistency**
   - Description:
-- [X] **Error handling**
+    The LLM seems to give consistent and replicable results for the same llm. I have used gpt-4o-mini due to its cost efficiency.
 
+- [x] **Error handling**
   - Description:
 
 ---
 
 ## Maintainability
 
-- [X] **Code organization**
-
+- [x] **Code organization**
   - Description:
-- [X] **Configuration**
+    The code has been formatted using trunk, ruff and several formatters to follow pep8 as much as possible.
+    However there are some exceptions, these were ignored when they absolutely were not possible to be followed.
 
+- [x] **Configuration**
   - Description:
-- [X] **Error handling**
+    It was composed in a yaml for docker.
 
+- [x] **Error handling**
   - Description:
-- [X] **Documentation**
 
+- [x] **Documentation**
   - Description:
 
 ---
 
 ## LLM Efficiency
 
-- [X] **Token usage optimization**
-
+- [x] **Token usage optimization**
   - Description:
-- [X] **Efficient LLM requests**
 
+- [x] **Efficient LLM requests**
   - Description:
+    There are some ideas on how to reduce it, as I ve already written it somewhere in this md file. The main part is to skip some steps,
+    if already in the context but its currently not fully realized in my mind.
 
 ---
 
 ## Testing
 
-- [X] **Unit tests**
-
+- [x] **Unit tests**
   - Description:
-- [X] **Integration tests**
+    All the test cases provided in the file were checked and works to my best knowledge of the intent of the examiner.
 
+- [x] **Integration tests**
   - Description:
-- [X] **Performance tests**
+    I dont think this was done.
 
+- [x] **Performance tests**
   - Description:
-- [X] **Edge case coverage**
+    This was done to improve the pipeline but not a lot of time was pushed for this.
 
+- [x] **Edge case coverage**
   - Description:
+    Edge cases were tried to be covered in the context part by filtering out columns in the pre sql generation step.
 
 ---
 
@@ -118,18 +132,26 @@ The project was dockerized for reproducibility.
 
 **Only complete this section if you implemented the optional follow-up questions feature.**
 
-- [X] **Intent detection for follow-ups**
-
+- [x] **Intent detection for follow-ups**
   - Description: [How does your system decide if a follow-up needs new SQL or uses existing context?]
-- [X] **Context-aware SQL generation**
+    I have made a sincere effort to build an Intent/Context-aware and context persistant chat agent for this solution.
+    But there are clear and glaring issues here. Once the intent is filtered, it should pick from the persistant memory, instead
+    it reuses the persistant memory to rehit the LLM. This can be prevented but I currently have not fully realized a solution.
 
+- [x] **Context-aware SQL generation**
   - Description: [How does your system use conversation history to generate SQL for follow-ups?]
-- [X] **Context persistence**
+    This is covered in the previous paragraph.
 
+- [x] **Context persistence**
   - Description: [How does your system maintain state across multiple conversation turns?]
-- [X] **Ambiguity resolution**
 
+  This is covered in the first paragraph.
+
+- [x] **Ambiguity resolution**
   - Description: [How does your system resolve ambiguous references like "what about males?"]
+
+  This by default is rejected by the context. There are cleaner ways to resolve it by letting the LLM give default answers.
+  But currently this was not addressed by my soluiton.
 
 **Approach summary:**
 
@@ -223,4 +245,4 @@ Include your before/after benchmark results here.
 
 **Completed by:** Mohamed Faheem Thanveer
 **Date:** 06/04/2026
-**Time spent:** 15
+**Time spent:** 16
