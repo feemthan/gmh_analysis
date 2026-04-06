@@ -123,7 +123,7 @@
     "mean": 69.849,
     "median": 70.215,
     "desc": "Work productivity score",
-    "synonyms": ["productivity", "performance"]
+    "synonyms": ["productivity", "performance", "work productivity"]
   },
   "addiction_level": {
     "datatype": "float",
@@ -131,7 +131,7 @@
     "mean": 2.824,
     "median": 2.47,
     "desc": "Gaming addiction level",
-    "synonyms": ["addiction"]
+    "synonyms": ["addiction", "addiction level"]
   },
   "multiplayer_ratio": {
     "datatype": "float",

@@ -148,9 +148,29 @@ class SQLValidator:
             if table_name != cls.ALLOWED_TABLE:
                 return fail(f"Disallowed table: {table_name}")
 
-        # 6) Validate columns
+        # 6a) Collect alias names defined via AS (column and table aliases)
+        defined_aliases: set[str] = set()
+        for alias in ast.find_all(exp.Alias):
+            alias_name = alias.alias
+            if alias_name:
+                defined_aliases.add(alias_name)
+        for table in tables:
+            if table.alias:
+                defined_aliases.add(table.alias)
+
+        # 6b) Validate columns (allow references to aliases defined in this query)
         for column in ast.find_all(exp.Column):
             column_name = column.name
+
+            # Reference to an alias defined in SELECT (e.g. ORDER BY avg_anxiety)
+            if column_name in defined_aliases:
+                continue
+
+            # Qualified reference like t.age where t is a table alias
+            table_ref = column.table
+            if table_ref and table_ref in defined_aliases and column_name in cls.ALLOWED_COLUMNS:
+                continue
+
             if column_name not in cls.ALLOWED_COLUMNS:
                 return fail(f"Disallowed or unknown column: {column_name}")
 
