@@ -202,10 +202,10 @@ Include your before/after benchmark results here.
 
 **Baseline (if you measured):**
 
-- Average latency: `___ ms`
-- p50 latency: `___ ms`
-- p95 latency: `___ ms`
-- Success rate: `___ %`
+- Average latency: `3424.17 ms`
+- p50 latency: `390.31 ms`
+- p95 latency: `28119.58 ms`
+- Success rate: `0 %`
 
 **Your solution:**
 
