@@ -40,13 +40,13 @@ The project was dockerized for reproducibility.
 
 ## Observability
 
-- [ ] **Logging**
+- [X] **Logging**
 
   - Description:
 - [X] **Metrics**
 
   - Description:
-- [ ] **Tracing**
+- [X] **Tracing**
 
   - Description:
 
@@ -57,13 +57,13 @@ The project was dockerized for reproducibility.
 - [X] **SQL validation**
 
   - Description:
-- [ ] **Answer quality**
+- [X] **Answer quality**
 
   - Description:
-- [ ] **Result consistency**
+- [X] **Result consistency**
 
   - Description:
-- [ ] **Error handling**
+- [X] **Error handling**
 
   - Description:
 
@@ -80,7 +80,7 @@ The project was dockerized for reproducibility.
 - [X] **Error handling**
 
   - Description:
-- [ ] **Documentation**
+- [X] **Documentation**
 
   - Description:
 
@@ -99,16 +99,16 @@ The project was dockerized for reproducibility.
 
 ## Testing
 
-- [ ] **Unit tests**
+- [X] **Unit tests**
 
   - Description:
-- [ ] **Integration tests**
+- [X] **Integration tests**
 
   - Description:
-- [ ] **Performance tests**
+- [X] **Performance tests**
 
   - Description:
-- [ ] **Edge case coverage**
+- [X] **Edge case coverage**
 
   - Description:
 
@@ -135,6 +135,30 @@ The project was dockerized for reproducibility.
 
 ```
 [Describe your approach to implementing follow-up questions. What architecture did you choose?]
+I had an inital setup using UV for my python env and i kept adding packages when necessary.
+There were a lot of issues with openrouter while I was working on it on Friday. I felt using ollama or even openai's base models
+made my work much faster.
+
+My main method was to add a context checker to filter out the columns required to solve the current user query.
+Next I extracted metadata for the llm to read and understand column data.
+This first step was very good at picking and choosing columns to run for the query and saved a lot of tokens.
+
+Next, I worked on codebase errors and token calculation. I made a mistake and wanted to calculate costs. I have left
+that code still there but since I am not sure which model the user intends to add in openrouter, I have left it commented out
+for the future.
+
+Initially for this part, I built a simple validation part to check the generated sql. a lot of this section of the code was
+built from claude opus4.6.
+
+I also used claude for frontend as I am not an expert on streamlit but I had a back and forth with it to improve it to
+my standards(its bare minimum still).
+The backend was flask and I have a similar setup in my current workspace in office.
+
+I wrote a simple session manager per each app run to manage previous queries to potentially cut down tokens but its not fully realized.
+The one I have in office is more complex but this was not improved as I felt I already exceeded the given time requirements.
+I think the context manager should end the conversation if the session manager has previously encountered similar questions.
+
+I finially dockerized it and composed it for a clean docker compose up.
 ```
 
 ---
@@ -145,18 +169,29 @@ The project was dockerized for reproducibility.
 
 ```
 [Your answer here]
+For me as a developer of similar chat interfaces, I prefer these above all else.
+Swift and highly accurate resolution to the query.
+
+I felt I acomplished it in this project using session manager, context checker, validation and dockerization.
+I fast fast deployment servers and quick builds which allow me to experiment with differnt setups.
+
 ```
 
 **Key improvements over baseline:**
 
 ```
 [Your answer here]
+The llm effectively works on the query in this pipeline with the given validation provided by me.
 ```
 
 **Known limitations or future work:**
 
 ```
 [Your answer here]
+Openrouter had a lot of issues, causing slow development on Friday. Only after switching it to paid services like openai,
+I made swift progress.
+I understand why this was setup by the interviewer. But I felt the need to point out the frustration of waiting and hoping for
+openrouter to work on a free account. I had to make 3 different accounts and cycle through them and still it was very slow.
 ```
 
 ---
@@ -188,4 +223,4 @@ Include your before/after benchmark results here.
 
 **Completed by:** Mohamed Faheem Thanveer
 **Date:** 06/04/2026
-**Time spent:** 13
+**Time spent:** 15
