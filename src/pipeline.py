@@ -224,6 +224,7 @@ class AnalyticsPipeline:
         db_path: str | Path = DEFAULT_DB_PATH,
         llm_client: OpenRouterLLMClient | None = None,
         session_manager = dict | None,
+        benchmark: bool = False,
     ) -> None:
         self.db_path = Path(db_path)
         self.llm = llm_client or build_default_llm_client()
@@ -232,6 +233,7 @@ class AnalyticsPipeline:
             "AIresponse": [],
             "Humanquestion": [],
         }
+        self.benchmark = benchmark
 
     def run(self, question: str, request_id: str | None = None) -> PipelineOutput:
         start = time.perf_counter()
@@ -254,8 +256,9 @@ class AnalyticsPipeline:
 
         # Stage 4: Answer Generation
         answer_output = self.llm.generate_answer(question, sql, rows, self.session_manager)
-        self.session_manager["AIresponse"].append(answer_output.answer)
-        self.session_manager["Humanquestion"].append(f"Query: {question}\nSQL: {sql}\nRows: {rows}")
+        if not self.benchmark:
+            self.session_manager["AIresponse"].append(answer_output.answer)
+            self.session_manager["Humanquestion"].append(f"Query: {question}\nSQL: {sql}\nRows: {rows}")
 
 
         # Determine status
