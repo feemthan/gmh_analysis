@@ -1,6 +1,6 @@
+import html
 import os
 from typing import Any, Dict, List
-import html
 
 import requests
 import streamlit as st
@@ -243,7 +243,9 @@ def append_user_message(text: str) -> None:
     )
 
 
-def append_assistant_message(content: str, payload: Dict[str, Any] | None = None) -> None:
+def append_assistant_message(
+    content: str, payload: Dict[str, Any] | None = None
+) -> None:
     message: Dict[str, Any] = {
         "role": "assistant",
         "content": content,

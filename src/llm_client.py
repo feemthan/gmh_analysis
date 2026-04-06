@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-import json
-import os
-import time
-from typing import Any
-from pathlib import Path
 # convert string to list for context building
 import ast
+import json
+import os
 import re
+import time
+from pathlib import Path
+from typing import Any
 
-from openai import OpenAI
 from dotenv import load_dotenv
 from loguru import logger
+from openai import OpenAI
 
 from src.types import AnswerGenerationOutput, SQLGenerationOutput
 
@@ -26,19 +26,22 @@ OPENAI_DEFAULT_MODEL = "gpt-4o-mini"
 OPENAI_BASE_URL = "https://api.openai.com/v1"
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-TABLE_META_DATA_CONTEXT = BASE_DIR / "src"/ "utils" / "table_metadata_context.json"
+TABLE_META_DATA_CONTEXT = BASE_DIR / "src" / "utils" / "table_metadata_context.json"
 
 # TODO : Add cost for different models here when required.
 COST_CALCULATOR = {
     "qwen/qwen3.6-plus:free": [0, 0],  # costs [input, ouptput tokens]
 }
 
+
 class OpenRouterLLMClient:
     """LLM client using the OpenRouter SDK for chat completions."""
 
     provider_name = "openrouter"
 
-    def __init__(self, api_key: str, model: str | None = None, provider: str | None = None) -> None:
+    def __init__(
+        self, api_key: str, model: str | None = None, provider: str | None = None
+    ) -> None:
         try:
             from openrouter import OpenRouter
         except ModuleNotFoundError as exc:
@@ -52,8 +55,12 @@ class OpenRouterLLMClient:
             self._client = OpenAI(base_url=base_url, api_key=api_key or "ollama")
         elif self.provider == "openrouter":
             if not api_key:
-                raise RuntimeError("OPENROUTER_API_KEY is required for openrouter provider.")
-            self.model = model or os.getenv("OPENROUTER_MODEL", OPENROUTER_DEFAULT_MODEL)
+                raise RuntimeError(
+                    "OPENROUTER_API_KEY is required for openrouter provider."
+                )
+            self.model = model or os.getenv(
+                "OPENROUTER_MODEL", OPENROUTER_DEFAULT_MODEL
+            )
             self._client = OpenRouter(api_key=api_key)
         elif self.provider == "openai":
             if not api_key:
@@ -72,7 +79,10 @@ class OpenRouterLLMClient:
         }
 
     def _chat(
-        self, messages: list[dict[str, str]], temperature: float, max_tokens: int,
+        self,
+        messages: list[dict[str, str]],
+        temperature: float,
+        max_tokens: int,
     ) -> str:
         if self.provider == "openrouter":
             res = self._client.chat.send(
@@ -144,18 +154,22 @@ class OpenRouterLLMClient:
 
     def build_context(self, question: str, session_manager: dict) -> dict[str, Any]:
 
-            table_meta_data_context = {}
-            if TABLE_META_DATA_CONTEXT.exists():
-                table_meta_data_context = json.loads(
-                    TABLE_META_DATA_CONTEXT.read_text(encoding="utf-8")
-                )
+        table_meta_data_context = {}
+        if TABLE_META_DATA_CONTEXT.exists():
+            table_meta_data_context = json.loads(
+                TABLE_META_DATA_CONTEXT.read_text(encoding="utf-8")
+            )
 
-            columns_to_llm = [
-                {"column": key, "description": value.get("desc", ""), "synonyms": value.get("synonyms", [])}
-                for key, value in table_meta_data_context.items()
-            ]
+        columns_to_llm = [
+            {
+                "column": key,
+                "description": value.get("desc", ""),
+                "synonyms": value.get("synonyms", []),
+            }
+            for key, value in table_meta_data_context.items()
+        ]
 
-            system_prompt = """
+        system_prompt = """
                 Your task is to identify the minimum set of relevant database columns needed to answer a user's question.
 
                 Rules:
@@ -170,36 +184,38 @@ class OpenRouterLLMClient:
 
             """
 
-            user_prompt = f"Previous session context: {session_manager}\n\nQuestion: {question}\n\nTable Metadata:\n{json.dumps(columns_to_llm, ensure_ascii=True)}"
-            try:
-                columns = self._chat(
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt},
-                    ],
-                    temperature=0.0,
-                    max_tokens=300,
-                )
-            except Exception as exc:
-                logger.error(f"Error building LLM context: {exc}")
-            logger.info(f"LLM returned columns: {columns}")
+        user_prompt = f"Previous session context: {session_manager}\n\nQuestion: {question}\n\nTable Metadata:\n{json.dumps(columns_to_llm, ensure_ascii=True)}"
+        try:
+            columns = self._chat(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.0,
+                max_tokens=300,
+            )
+        except Exception as exc:
+            logger.error(f"Error building LLM context: {exc}")
+        logger.info(f"LLM returned columns: {columns}")
 
-            if not columns:
-                print("LLM returned empty context. Proceeding with no columns.")
+        if not columns:
+            print("LLM returned empty context. Proceeding with no columns.")
+            return {}
+        else:
+            cleaned = re.sub(
+                r"^```(?:python)?\s*|\s*```$", "", columns.strip(), flags=re.MULTILINE
+            ).strip()
+            try:
+                parsed = ast.literal_eval(cleaned)
+            except (SyntaxError, ValueError) as exc:
+                print(f"Failed to parse LLM column list: {exc}\nRaw: {columns}")
                 return {}
-            else:
-                cleaned = re.sub(r"^```(?:python)?\s*|\s*```$", "", columns.strip(), flags=re.MULTILINE).strip()
-                try:
-                    parsed = ast.literal_eval(cleaned)
-                except (SyntaxError, ValueError) as exc:
-                    print(f"Failed to parse LLM column list: {exc}\nRaw: {columns}")
-                    return {}
-                context = {
-                    key: table_meta_data_context[key]
-                    for key in parsed
-                    if key in table_meta_data_context
-                }
-                return context
+            context = {
+                key: table_meta_data_context[key]
+                for key in parsed
+                if key in table_meta_data_context
+            }
+            return context
 
     def generate_sql(self, question: str, context: dict) -> SQLGenerationOutput:
         if not context:
@@ -255,7 +271,11 @@ class OpenRouterLLMClient:
         )
 
     def generate_answer(
-        self, question: str, sql: str | None, rows: list[dict[str, Any]], session_manager: dict
+        self,
+        question: str,
+        sql: str | None,
+        rows: list[dict[str, Any]],
+        session_manager: dict,
     ) -> AnswerGenerationOutput:
         if not sql:
             return AnswerGenerationOutput(

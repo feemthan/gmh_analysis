@@ -3,9 +3,9 @@ from __future__ import annotations
 import sqlite3
 import time
 from pathlib import Path
-from loguru import logger
 
-from sqlglot import parse_one, exp
+from loguru import logger
+from sqlglot import exp, parse_one
 from sqlglot.errors import ParseError
 
 from src.llm_client import OpenRouterLLMClient, build_default_llm_client
@@ -14,7 +14,6 @@ from src.types import (
     SQLExecutionOutput,
     SQLValidationOutput,
 )
-
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_DB_PATH = BASE_DIR / "data" / "gaming_mental_health.sqlite"
@@ -92,6 +91,7 @@ class SQLValidator:
         exp.TruncateTable,
         exp.Merge,
     )
+
     @classmethod
     def validate(cls, sql: str | None) -> SQLValidationOutput:
         start = time.perf_counter()
@@ -125,13 +125,17 @@ class SQLValidator:
 
         # 1) Only SELECT queries allowed
         if not isinstance(ast, exp.Select):
-            logger.info(f"SQL validation failed: Only SELECT statements are allowed. Received: {sql}")
+            logger.info(
+                f"SQL validation failed: Only SELECT statements are allowed. Received: {sql}"
+            )
             return fail("Only SELECT statements are allowed")
 
         # 2) Reject dangerous statement types anywhere
         for node_type in cls.DISALLOWED_NODES:
             if next(ast.find_all(node_type), None) is not None:
-                logger.info(f"SQL validation failed: Disallowed SQL operation: {node_type.__name__}")
+                logger.info(
+                    f"SQL validation failed: Disallowed SQL operation: {node_type.__name__}"
+                )
                 return fail(f"Disallowed SQL operation: {node_type.__name__}")
 
         # 3) No JOINs for single-table use case
@@ -178,11 +182,17 @@ class SQLValidator:
 
             # Qualified reference like t.age where t is a table alias
             table_ref = column.table
-            if table_ref and table_ref in defined_aliases and column_name in cls.ALLOWED_COLUMNS:
+            if (
+                table_ref
+                and table_ref in defined_aliases
+                and column_name in cls.ALLOWED_COLUMNS
+            ):
                 continue
 
             if column_name not in cls.ALLOWED_COLUMNS:
-                logger.info(f"SQL validation failed: Disallowed or unknown column: {column_name}")
+                logger.info(
+                    f"SQL validation failed: Disallowed or unknown column: {column_name}"
+                )
                 return fail(f"Disallowed or unknown column: {column_name}")
 
         # 7) Validate functions
@@ -255,7 +265,7 @@ class AnalyticsPipeline:
         self,
         db_path: str | Path = DEFAULT_DB_PATH,
         llm_client: OpenRouterLLMClient | None = None,
-        session_manager = dict | None,
+        session_manager=dict | None,
         benchmark: bool = False,
     ) -> None:
         self.db_path = Path(db_path)
@@ -287,11 +297,14 @@ class AnalyticsPipeline:
         rows = execution_output.rows
 
         # Stage 4: Answer Generation
-        answer_output = self.llm.generate_answer(question, sql, rows, self.session_manager)
+        answer_output = self.llm.generate_answer(
+            question, sql, rows, self.session_manager
+        )
         if not self.benchmark:
             self.session_manager["AIresponse"].append(answer_output.answer)
-            self.session_manager["Humanquestion"].append(f"Query: {question}\nSQL: {sql}\nRows: {rows}")
-
+            self.session_manager["Humanquestion"].append(
+                f"Query: {question}\nSQL: {sql}\nRows: {rows}"
+            )
 
         # Determine status
         status = "success"

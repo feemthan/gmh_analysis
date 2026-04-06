@@ -18,6 +18,7 @@ session_manager = {
     "Humanquestion": [],
 }
 
+
 @app.route("/chat", methods=["POST"])
 def chat() -> dict[str, str]:
     data = request.get_json()
