@@ -140,9 +140,11 @@ class SQLValidator:
             return fail("JOIN is not allowed")
 
         # 4) No subqueries for v1 validator
-        if next(ast.find_all(exp.Subquery), None) is not None:
-            logger.info("SQL validation failed: Subqueries are not allowed")
-            return fail("Subqueries are not allowed")
+        # if next(ast.find_all(exp.Subquery), None) is not None:
+        #     logger.info("SQL validation failed: Subqueries are not allowed")
+        #     return fail("Subqueries are not allowed")
+
+        # Add subqueries for now
 
         # 5) Validate tables
         tables = list(ast.find_all(exp.Table))
