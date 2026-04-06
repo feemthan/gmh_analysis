@@ -5,7 +5,7 @@
     "mean": 35.986,
     "median": 36.0,
     "desc": "Age of the individual",
-    "synonyms": ["age", "years"]
+    "synonyms": ["age", "years", "young", "old"]
   },
   "gender": {
     "datatype": "string",

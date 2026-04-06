@@ -3,7 +3,7 @@ from __future__ import annotations
 import sqlite3
 import time
 from pathlib import Path
-# from loguru import logger
+from loguru import logger
 
 from sqlglot import parse_one, exp
 from sqlglot.errors import ParseError
@@ -123,29 +123,35 @@ class SQLValidator:
 
         # 1) Only SELECT queries allowed
         if not isinstance(ast, exp.Select):
+            logger.info(f"SQL validation failed: Only SELECT statements are allowed. Received: {sql}")
             return fail("Only SELECT statements are allowed")
 
         # 2) Reject dangerous statement types anywhere
         for node_type in cls.DISALLOWED_NODES:
             if next(ast.find_all(node_type), None) is not None:
+                logger.info(f"SQL validation failed: Disallowed SQL operation: {node_type.__name__}")
                 return fail(f"Disallowed SQL operation: {node_type.__name__}")
 
         # 3) No JOINs for single-table use case
         if next(ast.find_all(exp.Join), None) is not None:
+            logger.info("SQL validation failed: JOIN is not allowed")
             return fail("JOIN is not allowed")
 
         # 4) No subqueries for v1 validator
         if next(ast.find_all(exp.Subquery), None) is not None:
+            logger.info("SQL validation failed: Subqueries are not allowed")
             return fail("Subqueries are not allowed")
 
         # 5) Validate tables
         tables = list(ast.find_all(exp.Table))
         if not tables:
+            logger.info("SQL validation failed: Query must reference a table")
             return fail("Query must reference a table")
 
         for table in tables:
             table_name = table.name
             if table_name != cls.ALLOWED_TABLE:
+                logger.info(f"SQL validation failed: Disallowed table: {table_name}")
                 return fail(f"Disallowed table: {table_name}")
 
         # 6a) Collect alias names defined via AS (column and table aliases)
@@ -172,6 +178,7 @@ class SQLValidator:
                 continue
 
             if column_name not in cls.ALLOWED_COLUMNS:
+                logger.info(f"SQL validation failed: Disallowed or unknown column: {column_name}")
                 return fail(f"Disallowed or unknown column: {column_name}")
 
         # 7) Validate functions
@@ -182,6 +189,7 @@ class SQLValidator:
             func_name = func_name.upper()
 
             if func_name not in cls.ALLOWED_FUNCTIONS:
+                logger.info(f"SQL validation failed: Disallowed function: {func_name}")
                 return fail(f"Disallowed function: {func_name}")
 
         # 8) Optional: disallow SELECT *

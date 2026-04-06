@@ -161,7 +161,7 @@ class OpenRouterLLMClient:
                 Rules:
                 - Use only the columns provided in the schema
                 - You can use the session context to understand what has been asked before, but focus on the current question
-                - Match based on column descriptions and synonyms
+                - Match based on column descriptions, synonyms, column names and your interpretation of the question
                 - Return ONLY a Python list of column names
                 - Do NOT include explanations, reasoning, or extra text
                 - Do NOT return anything other than the list
