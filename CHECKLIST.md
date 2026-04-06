@@ -174,15 +174,15 @@ Include your before/after benchmark results here.
 
 **Your solution:**
 
-- Average latency: `3535.5 ms`
-- p50 latency: `3487.64 ms`
-- p95 latency: `5042.76 ms`
-- Success rate: `0.8333 %`
+- Average latency: `4358.18 ms`
+- p50 latency: `4335.52 ms`
+- p95 latency: `5396.61 ms`
+- Success rate: `100 %`
 
 **LLM efficiency:**
 
-- Average tokens per request: `1810.22`
-- Average LLM calls per request: `2.83`
+- Average tokens per request: `1863.33`
+- Average LLM calls per request: `3`
 
 ---
 
