@@ -49,10 +49,12 @@ def main() -> None:
     root = Path(__file__).resolve().parents[1]
     prompts_path = root / "tests" / "public_prompts.json"
 
-    pipeline = AnalyticsPipeline(db_path=db_path)
+    pipeline = AnalyticsPipeline(db_path=db_path, benchmark=True)
     prompts = json.loads(prompts_path.read_text(encoding="utf-8"))
 
     totals: list[float] = []
+    llm_calls: list[int] = []
+    llm_tokens: list[int] = []
     success = 0
     count = 0
 
@@ -60,11 +62,11 @@ def main() -> None:
         for prompt in prompts:
             result = pipeline.run(prompt)
             totals.append(result.timings["total_ms"])
+            llm_calls.append(result.total_llm_stats["llm_calls"])
+            llm_tokens.append(result.total_llm_stats["total_tokens"])
             ### This was a dict call instead of a class attribute access method.
             success += int(result.status == "success")
             count += 1
-        #     break
-        # break
 
     summary = {
         "runs": args.runs,
@@ -73,6 +75,8 @@ def main() -> None:
         "avg_ms": round(statistics.fmean(totals), 2) if totals else 0.0,
         "p50_ms": round(percentile(totals, 50), 2),
         "p95_ms": round(percentile(totals, 95), 2),
+        "avg_llm_calls": round(statistics.fmean(llm_calls), 2) if llm_calls else 0.0,
+        "avg_llm_tokens": round(statistics.fmean(llm_tokens), 2) if llm_tokens else 0.0,
     }
     print(json.dumps(summary, indent=2))
 
