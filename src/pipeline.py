@@ -78,6 +78,8 @@ class SQLValidator:
         "LOWER",
         "UPPER",
         "ROUND",
+        "CASE",
+        "IF",
     }
 
     DISALLOWED_NODES = (
