@@ -9,6 +9,7 @@ from pathlib import Path
 import ast
 import re
 
+from openai import OpenAI
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -16,7 +17,14 @@ from src.types import AnswerGenerationOutput, SQLGenerationOutput
 
 load_dotenv()
 
-DEFAULT_MODEL = "qwen/qwen3.6-plus:free"
+OPENROUTER_DEFAULT_MODEL = "qwen/qwen3.6-plus:free"
+
+OLLAMA_DEFAULT_MODEL = "qwen3.5:latest"
+OLLAMA_BASE_URL = "http://localhost:11434/v1"
+
+OPENAI_DEFAULT_MODEL = "gpt-4o-mini"
+OPENAI_BASE_URL = "https://api.openai.com/v1"
+
 BASE_DIR = Path(__file__).resolve().parents[1]
 TABLE_META_DATA_CONTEXT = BASE_DIR / "src"/ "utils" / "table_metadata_context.json"
 
@@ -30,13 +38,32 @@ class OpenRouterLLMClient:
 
     provider_name = "openrouter"
 
-    def __init__(self, api_key: str, model: str | None = None) -> None:
+    def __init__(self, api_key: str, model: str | None = None, provider: str | None = None) -> None:
         try:
             from openrouter import OpenRouter
         except ModuleNotFoundError as exc:
             raise RuntimeError("Missing dependency: install 'openrouter'.") from exc
-        self.model = model or os.getenv("OPENROUTER_MODEL", DEFAULT_MODEL)
-        self._client = OpenRouter(api_key=api_key)
+
+        self.provider = (provider or os.getenv("LLM_PROVIDER", "openrouter")).lower()
+
+        if self.provider == "ollama":
+            base_url = os.getenv("OLLAMA_BASE_URL", OLLAMA_BASE_URL)
+            self.model = model or os.getenv("OLLAMA_MODEL", OLLAMA_DEFAULT_MODEL)
+            self._client = OpenAI(base_url=base_url, api_key=api_key or "ollama")
+        elif self.provider == "openrouter":
+            if not api_key:
+                raise RuntimeError("OPENROUTER_API_KEY is required for openrouter provider.")
+            self.model = model or os.getenv("OPENROUTER_MODEL", OPENROUTER_DEFAULT_MODEL)
+            self._client = OpenRouter(api_key=api_key)
+        elif self.provider == "openai":
+            if not api_key:
+                raise RuntimeError("OPENAI_API_KEY is required for openai provider.")
+            self.model = model or os.getenv("OPENAI_MODEL", OPENAI_DEFAULT_MODEL)
+            self._client = OpenAI(base_url=OPENAI_BASE_URL, api_key=api_key)
+        else:
+            raise RuntimeError(f"Unknown LLM_PROVIDER: {self.provider}")
+
+        # self._client = OpenRouter(api_key=api_key)
         self._stats = {
             "llm_calls": 0,
             "prompt_tokens": 0,
@@ -45,15 +72,24 @@ class OpenRouterLLMClient:
         }
 
     def _chat(
-        self, messages: list[dict[str, str]], temperature: float, max_tokens: int
+        self, messages: list[dict[str, str]], temperature: float, max_tokens: int,
     ) -> str:
-        res = self._client.chat.send(
-            messages=messages,
-            model=self.model,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            stream=False,
-        )
+        if self.provider == "openrouter":
+            res = self._client.chat.send(
+                messages=messages,
+                model=self.model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stream=False,
+            )
+        else:
+            res = self._client.chat.completions.create(
+                messages=messages,
+                model=self.model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stream=False,
+            )
 
         # TODO: Implement token counting here
         # Required for efficiency evaluation - see README.md for details.
@@ -124,6 +160,7 @@ class OpenRouterLLMClient:
 
                 Rules:
                 - Use only the columns provided in the schema
+                - You can use the session context to understand what has been asked before, but focus on the current question
                 - Match based on column descriptions and synonyms
                 - Return ONLY a Python list of column names
                 - Do NOT include explanations, reasoning, or extra text
@@ -134,7 +171,6 @@ class OpenRouterLLMClient:
             """
 
             user_prompt = f"Previous session context: {session_manager}\n\nQuestion: {question}\n\nTable Metadata:\n{json.dumps(columns_to_llm, ensure_ascii=True)}"
-            columns = []
             try:
                 columns = self._chat(
                     messages=[
@@ -145,15 +181,22 @@ class OpenRouterLLMClient:
                     max_tokens=300,
                 )
             except Exception as exc:
-                print(f"Error building LLM context: {exc}")
+                logger.error(f"Error building LLM context: {exc}")
+            logger.info(f"LLM returned columns: {columns}")
 
             if not columns:
                 print("LLM returned empty context. Proceeding with no columns.")
                 return {}
             else:
+                cleaned = re.sub(r"^```(?:python)?\s*|\s*```$", "", columns.strip(), flags=re.MULTILINE).strip()
+                try:
+                    parsed = ast.literal_eval(cleaned)
+                except (SyntaxError, ValueError) as exc:
+                    print(f"Failed to parse LLM column list: {exc}\nRaw: {columns}")
+                    return {}
                 context = {
                     key: table_meta_data_context[key]
-                    for key in ast.literal_eval(columns)
+                    for key in parsed
                     if key in table_meta_data_context
                 }
                 return context
@@ -292,7 +335,11 @@ class OpenRouterLLMClient:
 
 
 def build_default_llm_client() -> OpenRouterLLMClient:
-    api_key = os.getenv("OPENROUTER_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError("OPENROUTER_API_KEY is required.")
-    return OpenRouterLLMClient(api_key=api_key)
+    provider = os.getenv("LLM_PROVIDER", "openrouter").lower()
+    key_env = {
+        "openrouter": "OPENROUTER_API_KEY",
+        "openai": "OPENAI_API_KEY",
+        "ollama": "",
+    }.get(provider, "")
+    api_key = os.getenv(key_env, "").strip() or None if key_env else None
+    return OpenRouterLLMClient(api_key=api_key, provider=provider)
