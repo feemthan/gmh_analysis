@@ -1,150 +1,248 @@
-# Senior Full Stack Engineer (GenAI-Labs) Take-Home Assignment
+# Production Readiness Checklist
 
-## Timebox
+**Instructions:** Complete all sections below. Check the box when an item is implemented, and provide descriptions where requested. This checklist is a required deliverable.
 
-Plan for **4-6 hours**.
+---
 
-## Goal
+## Approach
 
-Optimize a baseline LLM-driven analytics pipeline for a single-table SQL dataset while preserving output quality.
+Describe how you approached this assignment and what key problems you identified and solved.
 
-Key metrics include **end-to-end response time** from prompt ingest to final answer, **resources consumed** (tokens), and **quality of the output**.
+- [x] **System works correctly end-to-end**
 
-## Current Status
+**What were the main challenges you identified?**
 
-**This codebase is a starting point for the assignment and is not yet fully functional.** Several core components require implementation to make the pipeline production-ready:
-
-- Token counting infrastructure (skeleton provided in `src/llm_client.py`, actual counting logic needs implementation)
-- SQL validation and quality checks
-- Result validation and answer quality verification
-- Comprehensive observability (logging, metrics, tracing)
-- Edge case handling and error recovery
-
-The baseline pipeline will run, but key functionality—particularly around validation, observability, and efficiency optimizations—remains incomplete. See `Assignment Tasks` below and `CHECKLIST.md` for specific implementation requirements.
-
-## What You Get
-
-- Baseline Python pipeline with stages:
-  - SQL generation (real LLM call)
-  - SQL validation
-  - SQL execution
-  - Answer generation (real LLM call)
-- Single SQLite table with gaming and mental health survey data
-- Public tests and benchmark script
-- OpenRouter integration via [OpenRouter Python SDK](https://pypi.org/project/openrouter/)
-- Configurable model (default: `openai/gpt-5-nano`, override via `OPENROUTER_MODEL`)
-
-## Assignment Tasks
-
-1. **Make the system production-ready.** What does production-ready mean to you? Demonstrate whatever you consider essential.
-
-2. **Ensure the system can generate accurate SQL queries.** The baseline may not work correctly out of the box. Identify what's missing and implement what's needed for reliable SQL generation.
-
-3. **Maintain or improve answer correctness.** The system should handle edge cases gracefully.
-
-4. **Design appropriate observability for this analytics pipeline.** Implement tracing, metrics, and logging as you see fit for production use.
-
-5. **Implement a validation framework to ensure answer quality.** Consider SQL validation, result validation, and answer quality checks. (Hint: think about what SQL validation means in the context of an analytics pipeline.)
-
-6. **Consider efficiency.** Optimize end-to-end latency, token usage, and efficient LLM requests while preserving quality.
-
-## Hard Requirements
-
-1. Do not modify existing public tests in `tests/test_public.py`.
-2. Public tests must pass.
-3. Keep the project runnable locally with standard Python.
-4. Output contract: `AnalyticsPipeline.run()` must return a `PipelineOutput` instance, with each stage producing outputs that conform to the type schemas in `src/types.py`. This enables automated evaluation; submissions that deviate from it cannot be graded correctly.
-5. Token counting must be implemented. The baseline includes a skeleton for tracking LLM usage statistics in `src/llm_client.py`, but you must implement the actual token counting. This is required for the efficiency evaluation to work.
-
-## Production Readiness Requirements
-
-Your submission **must include** a completed `CHECKLIST.md` file documenting your design decisions and implementation approach across all relevant areas.
-
-## Requirements
-
-- **Python:** 3.13+
-- **Dependencies:** `openrouter`, `pandas` (see `requirements.txt`)
-
-## Setup
-
-### Data Setup
-
-The dataset (~160MB) is not included in this repository. Download it before running the pipeline:
-
-1. Go to [Kaggle - Gaming and Mental Health](https://www.kaggle.com/datasets/sharmajicoder/gaming-and-mental-health?select=gaming_mental_health_10M_40features.csv)
-2. Download `gaming_mental_health_10M_40features.csv` (select this file from the dataset)
-3. Place the file in the `data/` directory
-4. **Important:** Ensure you download and use all 39 columns—do not drop any columns during download or import
-
-The Kaggle page provides a more detailed description of the dataset, including column definitions and data sources.
-
-```bash
-python3 -m pip install -r requirements.txt
-python3 scripts/gaming_csv_to_db.py
-python3 -m unittest discover -s tests -p "test_public.py"
+```
+[Describe the key problems you needed to solve for the system to work correctly]
+1. Local code setup using UV.
+2. Dataset analysis for meta data extraction.
+3. OPENROUTER Integration with key (this currently has a lot of issues due to rate limiting for free tier).
+4. Column filter for context before sql query generation for drilling down the required rows to reduce tokens and use the meta data efficiently
+5. Token calculation
+6. SQL generation needed prompts modification.
+7. SQL validation implentation.
+8. front and backend development using streamlit and flask.
+9. Session management for the backend.
+10. Dockerization.
 ```
 
-### OpenRouter Setup
+**What was your approach?**
 
-This project uses [OpenRouter](https://openrouter.ai/) to access LLMs for SQL generation and answer synthesis. OpenRouter provides a unified API for many models across providers. It offers a **free tier** that lets you use certain models at no cost, which is sufficient for this assignment.
-
-To get started:
-
-1. **Create an account** at [openrouter.ai](https://openrouter.ai/)
-2. **Create an API key** in your account settings
-3. **Set the API key** in your environment (or copy from `.env.example`):
-
-```bash
-set OPENROUTER_API_KEY=<your_key>
+```
+[Explain your solution at a high level. What did you implement and why?]
+I have implemented a Text to SQL pipeline using the skeleton code provided.
+I added context wise column filtering, sql generation and validation. This was then used for token calculation.
+A raw UI and Backend code base was written for this project.
+The project was dockerized for reproducibility.
 ```
 
-On Linux/macOS: `export OPENROUTER_API_KEY=<your_key>`
+---
 
-## Benchmark
+## Observability
 
-Run:
+- [x] **Logging**
+  - Description:
+    I usued my usual logger loguru to check outputs after sql generation and token calculations.
+    For validation checker logging was very useful to find the exact places improvements were necessary
+    Maybe better logging could have been done for some steps in the pipeline.
 
-```bash
-python3 scripts/benchmark.py --runs 3
+- [x] **Metrics**
+  - Description:
+
+  Super happy to see the 100% on completion. But I am not sure if the ms is as per the examiners expectation.
+  I think because I used openai, these numbers may seem inflated. I was really annoyed with the sluggish openrouter and ollama.
+  In the essence of speed, I had to resort to openai.
+
+- [x] **Tracing**
+  - Description:
+
+---
+
+## Validation & Quality Assurance
+
+- [x] **SQL validation**
+  - Description:
+    A fair attempt has been made to give a rule based sql validation step.
+
+- [x] **Answer quality**
+  - Description:
+    I think this was the best I can do for the given time and timeframe. Adding more thought could definitely have improved the results.
+
+- [x] **Result consistency**
+  - Description:
+    The LLM seems to give consistent and replicable results for the same llm. I have used gpt-4o-mini due to its cost efficiency.
+
+- [x] **Error handling**
+  - Description:
+
+---
+
+## Maintainability
+
+- [x] **Code organization**
+  - Description:
+    The code has been formatted using trunk, ruff and several formatters to follow pep8 as much as possible.
+    However there are some exceptions, these were ignored when they absolutely were not possible to be followed.
+
+- [x] **Configuration**
+  - Description:
+    It was composed in a yaml for docker.
+
+- [x] **Error handling**
+  - Description:
+
+- [x] **Documentation**
+  - Description:
+
+---
+
+## LLM Efficiency
+
+- [x] **Token usage optimization**
+  - Description:
+
+- [x] **Efficient LLM requests**
+  - Description:
+    There are some ideas on how to reduce it, as I ve already written it somewhere in this md file. The main part is to skip some steps,
+    if already in the context but its currently not fully realized in my mind.
+
+---
+
+## Testing
+
+- [x] **Unit tests**
+  - Description:
+    All the test cases provided in the file were checked and works to my best knowledge of the intent of the examiner.
+
+- [x] **Integration tests**
+  - Description:
+    I dont think this was done.
+
+- [x] **Performance tests**
+  - Description:
+    This was done to improve the pipeline but not a lot of time was pushed for this.
+
+- [x] **Edge case coverage**
+  - Description:
+    Edge cases were tried to be covered in the context part by filtering out columns in the pre sql generation step.
+
+---
+
+## Optional: Multi-Turn Conversation Support
+
+**Only complete this section if you implemented the optional follow-up questions feature.**
+
+- [x] **Intent detection for follow-ups**
+  - Description: [How does your system decide if a follow-up needs new SQL or uses existing context?]
+    I have made a sincere effort to build an Intent/Context-aware and context persistant chat agent for this solution.
+    But there are clear and glaring issues here. Once the intent is filtered, it should pick from the persistant memory, instead
+    it reuses the persistant memory to rehit the LLM. This can be prevented but I currently have not fully realized a solution.
+
+- [x] **Context-aware SQL generation**
+  - Description: [How does your system use conversation history to generate SQL for follow-ups?]
+    This is covered in the previous paragraph.
+
+- [x] **Context persistence**
+  - Description: [How does your system maintain state across multiple conversation turns?]
+
+  This is covered in the first paragraph.
+
+- [x] **Ambiguity resolution**
+  - Description: [How does your system resolve ambiguous references like "what about males?"]
+
+  This by default is rejected by the context. There are cleaner ways to resolve it by letting the LLM give default answers.
+  But currently this was not addressed by my soluiton.
+
+**Approach summary:**
+
+```
+[Describe your approach to implementing follow-up questions. What architecture did you choose?]
+I had an inital setup using UV for my python env and i kept adding packages when necessary.
+There were a lot of issues with openrouter while I was working on it on Friday. I felt using ollama or even openai's base models
+made my work much faster.
+
+My main method was to add a context checker to filter out the columns required to solve the current user query.
+Next I extracted metadata for the llm to read and understand column data.
+This first step was very good at picking and choosing columns to run for the query and saved a lot of tokens.
+
+Next, I worked on codebase errors and token calculation. I made a mistake and wanted to calculate costs. I have left
+that code still there but since I am not sure which model the user intends to add in openrouter, I have left it commented out
+for the future.
+
+Initially for this part, I built a simple validation part to check the generated sql. a lot of this section of the code was
+built from claude opus4.6.
+
+I also used claude for frontend as I am not an expert on streamlit but I had a back and forth with it to improve it to
+my standards(its bare minimum still).
+The backend was flask and I have a similar setup in my current workspace in office.
+
+I wrote a simple session manager per each app run to manage previous queries to potentially cut down tokens but its not fully realized.
+The one I have in office is more complex but this was not improved as I felt I already exceeded the given time requirements.
+I think the context manager should end the conversation if the session manager has previously encountered similar questions.
+
+I finially dockerized it and composed it for a clean docker compose up.
 ```
 
-This prints baseline-style latency stats (`avg`, `p50`, `p95`) and success rate.
+---
 
-**Reference metrics** (baseline on reference hardware): avg ~2900ms, p50 ~2500ms, p95 ~4700ms, ~600 tokens/request.
+## Production Readiness Summary
 
-## Deliverables
+**What makes your solution production-ready?**
 
-1. Updated source code
-2. Added tests (if any)
-3. Completed `CHECKLIST.md` with all sections addressed
-4. Short engineering note (`SOLUTION_NOTES.md`) with:
-   - What you changed
-   - Why you changed it
-   - Measured impact (before/after benchmark numbers)
-   - Tradeoffs and next steps
+```
+[Your answer here]
+For me as a developer of similar chat interfaces, I prefer these above all else.
+Swift and highly accurate resolution to the query.
 
-## Optional Part: Multi-Turn Conversation Support
+I felt I acomplished it in this project using session manager, context checker, validation and dockerization.
+I fast fast deployment servers and quick builds which allow me to experiment with differnt setups.
 
-This is an **optional** part for candidates who want to demonstrate additional capabilities. It is **not required** for a complete submission, but may contribute to bonus evaluation.
+```
 
-### The Problem
+**Key improvements over baseline:**
 
-The current pipeline handles single, isolated questions. In real-world scenarios, users often ask follow-up questions that reference previous context:
+```
+[Your answer here]
+The llm effectively works on the query in this pipeline with the given validation provided by me.
+```
 
-- "What is the addiction level distribution by gender?"
-- Follow-up: "What about males specifically?"
-- Follow-up: "Can you explain the highest value?"
-- Follow-up: "Now sort by anxiety score instead"
+**Known limitations or future work:**
 
-### Implementation Guidelines
+```
+[Your answer here]
+Openrouter had a lot of issues, causing slow development on Friday. Only after switching it to paid services like openai,
+I made swift progress.
+I understand why this was setup by the interviewer. But I felt the need to point out the frustration of waiting and hoping for
+openrouter to work on a free account. I had to make 3 different accounts and cycle through them and still it was very slow.
+```
 
-- You may implement this however you see fit: extend the existing pipeline, add new modules, or integrate directly into the LLM client.
-- No skeleton code or boilerplate is provided - design the solution architecture yourself.
-- If implemented, document your approach in `CHECKLIST.md` under a "Follow-Up Questions" section.
+---
 
-## General Notes
+## Benchmark Results
 
-- The baseline intentionally leaves room for substantial optimization.
-- Hidden evaluation includes paraphrased prompts and edge/failure cases.
-- Public tests are integration tests and require a valid `OPENROUTER_API_KEY`.
-- Think beyond the obvious optimizations - the challenge tests your engineering judgment, not just your ability to follow a checklist.
+Include your before/after benchmark results here.
+
+**Baseline (if you measured):**
+
+- Average latency: `3424.17 ms`
+- p50 latency: `390.31 ms`
+- p95 latency: `28119.58 ms`
+- Success rate: `0 %`
+
+**Your solution:**
+
+- Average latency: `4358.18 ms`
+- p50 latency: `4335.52 ms`
+- p95 latency: `5396.61 ms`
+- Success rate: `100 %`
+
+**LLM efficiency:**
+
+- Average tokens per request: `1863.33`
+- Average LLM calls per request: `3`
+
+---
+
+**Completed by:** Mohamed Faheem Thanveer
+**Date:** 06/04/2026
+**Time spent:** 16
